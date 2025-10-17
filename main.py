@@ -1,28 +1,39 @@
 import requests
+from pprint import pprint
+from numpy import random
+
 
 RESULTS = 'results'
 NUM_RESULTS_TO_COLLECT = 50
 DNF = -1
-
-from numpy import random
-import matplotlib.pyplot as plt
-
-
+DNF_AVG = 999
 class Player:
     def __init__(self, wca_id):
         self.wca_id = wca_id
         url = f"https://raw.githubusercontent.com/robiningelbrecht/wca-rest-api/master/api/persons/{self.wca_id}.json"
-        self.response = requests.get(url)
+        self.response = requests.get(url) 
+        if self.validPlayer():
+            self.player_data = self.response.json()
+            self.name = self.player_data['name']
+        else:
+            self.name = None
+
+        self.avg = None
+        self.times = None
 
     def validPlayer(self):
         return self.response.status_code == 200
+
+    def __str__(self):
+        return f"{self.name}, WCA ID: {self.wca_id}"
+    def __repr__(self):
+        return self.__str__()
  
     def getRecentResults(self, event):
         num_results = 0
         times = []
         if self.validPlayer():
-            data = self.response.json()
-            for comp, results in data[RESULTS].items():
+            for comp, results in self.player_data[RESULTS].items():
                 if event in results:
                     for result in results[event]:
                         for solve in result['solves']:
@@ -46,37 +57,75 @@ class Player:
         dist[dnf_indices] = DNF
         return dist
 
-    def calculateRound(self, event):
+    def generateNewResults(self, event):
         recent_results = self.getRecentResults(event)
         data_nd = self.calcNormalDistribution(recent_results, 98)
         
         times = []
-        print(data_nd)
-        for _ in range(5):
-            times.append(random.choice(data_nd))
-        return times
         
+        num_dnf = 0
+        for _ in range(5):
+            new_time = random.choice(data_nd)
+            if new_time == DNF:
+                num_dnf += 1
+            times.append(new_time)
+        
+        if num_dnf > 1:
+            self.avg = DNF_AVG
+
+        
+        total = sum(times)
+        fastest = min(times)
+        slowest = max(times)
+        self.avg = (total - fastest - slowest) / (3)
+        self.times = times
 NUM_PLAYERS = 8
-player_list = []
+EVENTS = [
+    "222",      # 2x2x2 Cube
+    "333",      # 3x3x3 Cube
+    "444",      # 4x4x4 Cube
+    "555",      # 5x5x5 Cube
+    "666",      # 6x6x6 Cube
+    "777",      # 7x7x7 Cube
+    "333bf",    # 3x3x3 Blindfolded
+    "333fm",    # 3x3x3 Fewest Moves
+    "333oh",    # 3x3x3 One-Handed
+    "333mbf",   # 3x3x3 Multi-Blind
+    "pyram",    # Pyraminx
+    "minx",     # Megaminx
+    "skewb",    # Skewb
+    "sq1",      # Square-1
+    "clock",    # Rubik's Clock
+    "444bf",    # 4x4x4 Blindfolded
+    "555bf"     # 5x5x5 Blindfolded
+]
 
-while len(player_list) < NUM_PLAYERS:
-    new_person_wca_id = input("Enter a person's WCA ID: ")
+def main():
+    player_list = []
 
-    if new_person_wca_id == "":
-        break
-    player_to_add = Player(new_person_wca_id)
-    if player_to_add.validPlayer is False:
-        print("ERROR")
-    else:
-        player_list.append(player_to_add)
-print(player_list)
+    while len(player_list) < NUM_PLAYERS:
+        new_person_wca_id = input("Enter a person's WCA ID: ")
+
+        if new_person_wca_id == "":
+            break
+        player_to_add = Player(new_person_wca_id)
+        if player_to_add.validPlayer() is False:
+            print("ERROR")
+        else:
+            player_list.append(player_to_add)
 
 
+    event = input("What event will you be competing in today? ")
+    while event not in EVENTS:
+        print("Invalid event")
+        event = input("What event will you be competing in today? ")
 
-dwan = Player('2019RAMO05')
-jasp = Player('2018MURR03')
+    for player in player_list:
+        print(player)
+        player.generateNewResults(event)
+        pprint(player.times)
+        print(player.avg)
+    
 
-times1 = dwan.calculateRound('333')
-times2 = jasp.calculateRound('333')
-print(times1)
-print(times2)
+if __name__ == "__main__":
+    main()
