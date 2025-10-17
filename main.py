@@ -1,8 +1,19 @@
 import requests
 from pprint import pprint
 from numpy import random
-
-
+from cubescrambler import (
+    scrambler222,
+    scrambler333,
+    scrambler444,
+    scrambler555,
+    scrambler666,
+    scrambler777,
+    pyraminxScrambler,
+    megaminxScrambler,
+    squareOneScrambler,
+    skewbScrambler,
+    clockScrambler
+)
 RESULTS = 'results'
 NUM_RESULTS_TO_COLLECT = 50
 DNF = 999
@@ -12,19 +23,6 @@ def clear():
     print(chr(27) + "[2J")
 
 class Player:
-    def __init__(self, wca_id):
-        
-        self.avg = None
-        self.times = None
-
-    def validPlayer(self):
-        return self.response.status_code == 200
-
-    def __str__(self):
-        return f"{self.name}, WCA ID: {self.wca_id}"
-    def __repr__(self):
-        return self.__str__()
-    
     def printSinglesUpToSolveNum(self, solve_num):
         string = f"{self.name}: "
         for i in range(solve_num - 1):
@@ -38,6 +36,30 @@ class Player:
             string += f"{self.times[solve_num - 1]:.2f}"
         print(string)
 
+class userPlayer(Player):
+    def __init__(self, name):
+        self.name = name
+        self.avg = None
+        self.times = []
+
+    def addTime(self):
+        new_time = float(input("What did you get on this scramble? "))
+        self.times.append(new_time)
+    
+    def generateAvg(self):
+        num_dnf = 0
+        for num in self.times:
+            if num == DNF:
+                num_dnf += 1
+
+        if num_dnf > 1:
+            self.avg = DNF_AVG
+
+        total = sum(self.times)
+        fastest = min(self.times)
+        slowest = max(self.times)
+        self.avg = (total - fastest - slowest) / (3)
+
 
 class gennedPlayer(Player):
     def __init__(self, wca_id):
@@ -49,7 +71,16 @@ class gennedPlayer(Player):
             self.name = self.player_data['name']
         else:
             self.name = None
+    
+    def __str__(self):
+        return f"{self.name}, WCA ID: {self.wca_id}"
+    
+    def __repr__(self):
+        return self.__str__()
 
+    def validPlayer(self):
+        return self.response.status_code == 200
+    
     def getRecentResults(self, event):
         num_results = 0
         times = []
@@ -104,25 +135,76 @@ class gennedPlayer(Player):
 
 
 NUM_PLAYERS = 8
-EVENTS = [
-    "222",      # 2x2x2 Cube
-    "333",      # 3x3x3 Cube
-    "444",      # 4x4x4 Cube
-    "555",      # 5x5x5 Cube
-    "666",      # 6x6x6 Cube
-    "777",      # 7x7x7 Cube
-    "333bf",    # 3x3x3 Blindfolded
-    "333fm",    # 3x3x3 Fewest Moves
-    "333oh",    # 3x3x3 One-Handed
-    "333mbf",   # 3x3x3 Multi-Blind
-    "pyram",    # Pyraminx
-    "minx",     # Megaminx
-    "skewb",    # Skewb
-    "sq1",      # Square-1
-    "clock",    # Rubik's Clock
-    "444bf",    # 4x4x4 Blindfolded
-    "555bf"     # 5x5x5 Blindfolded
-]
+EVENT_INFO = {
+    "222": {
+        "name": "2x2x2 Cube",
+        "scramble": scrambler222.get_WCA_scramble
+    },
+    "333": {
+        "name": "3x3x3 Cube (Rubik's Cube)",
+        "scramble": scrambler333.get_WCA_scramble
+    },
+    "444": {
+        "name": "4x4x4 Cube",
+        "scramble": scrambler444.get_WCA_scramble
+    },
+    "555": {
+        "name": "5x5x5 Cube",
+        "scramble": scrambler555.get_WCA_scramble
+    },
+    "666": {
+        "name": "6x6x6 Cube",
+        "scramble": scrambler666.get_WCA_scramble
+    },
+    "777": {
+        "name": "7x7x7 Cube",
+        "scramble": scrambler777.get_WCA_scramble
+    },
+    "333bf": {
+        "name": "3x3x3 Blindfolded",
+        "scramble": scrambler333.get_WCA_scramble
+    },
+    "333fm": {
+        "name": "3x3x3 Fewest Moves",
+        "scramble": scrambler333.get_WCA_scramble
+    },
+    "333oh": {
+        "name": "3x3x3 One-Handed",
+        "scramble": scrambler333.get_WCA_scramble
+    },
+    "333mbf": {
+        "name": "3x3x3 Multi-Blind",
+        "scramble": scrambler333.get_3BLD_scramble
+    },
+    "pyram": {
+        "name": "Pyraminx",
+        "scramble": pyraminxScrambler.get_WCA_scramble
+    },
+    "minx": {
+        "name": "Megaminx",
+        "scramble": megaminxScrambler.get_WCA_scramble
+    },
+    "skewb": {
+        "name": "Skewb",
+        "scramble": skewbScrambler.get_WCA_scramble
+    },
+    "sq1": {
+        "name": "Square-1",
+        "scramble": squareOneScrambler.get_WCA_scramble
+    },
+    "clock": {
+        "name": "Rubik's Clock",
+        "scramble": clockScrambler.get_WCA_scramble
+    },
+    "444bf": {
+        "name": "4x4x4 Blindfolded",
+        "scramble": scrambler444.get_WCA_scramble
+    },
+    "555bf": {
+        "name": "5x5x5 Blindfolded",
+        "scramble": scrambler555.get_WCA_scramble
+    }
+}
 
 def main():
     clear()
@@ -138,17 +220,28 @@ def main():
             print("ERROR")
         else:
             player_list.append(player_to_add)
-
     clear()
     event = input("What event will you be competing in today? ")
-    while event not in EVENTS:
+    while event not in EVENT_INFO:
         print("Invalid event")
         event = input("What event will you be competing in today? ")
     for player in player_list:
         player.generateNewResults(event)
+    
+    user = userPlayer('Player')
+    player_list.append(user)
 
+    scramble_function = EVENT_INFO[event]["scramble"]
+    scramble_list = []
+    print("Genning scrambles...")
+    for i in range(5):
+        scramble_list.append(scramble_function())
 
     for i in range(5):
+        clear()
+        print(f"SOLVE {i + 1} SCRAMBLE: {scramble_list[i]}")
+        user.addTime()
+
         clear()
         print("#" * 15, "SOLVE ", i + 1, " ", "#" * 15)
 
@@ -157,6 +250,7 @@ def main():
             player.printSinglesUpToSolveNum(i + 1)
         input()
     
+    user.generateAvg()
     player_list.sort(key = lambda x : x.avg)
     for pos, player in enumerate(player_list):
         print(f"Position: {pos + 1} => {player.name}, Average = {player.avg:.2f}")
