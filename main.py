@@ -123,8 +123,13 @@ def main():
     for player in player_list:
         print(player)
         player.generateNewResults(event)
-        pprint(player.times)
-        print(player.avg)
+        #pprint(player.times)
+        #print(player.avg)
+
+    player_list.sort(key = lambda x : x.avg)
+    for pos, player in enumerate(player_list):
+        print(f"Position: {pos + 1} => {player.name}, Average = {player.avg:.2f}")
+
     
 
 if __name__ == "__main__":
