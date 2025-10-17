@@ -13,11 +13,14 @@ class Player:
         self.wca_id = wca_id
         url = f"https://raw.githubusercontent.com/robiningelbrecht/wca-rest-api/master/api/persons/{self.wca_id}.json"
         self.response = requests.get(url)
+
+    def validPlayer(self):
+        return self.response.status_code == 200
  
     def getRecentResults(self, event):
         num_results = 0
         times = []
-        if self.response.status_code == 200:
+        if self.validPlayer():
             data = self.response.json()
             for comp, results in data[RESULTS].items():
                 if event in results:
@@ -53,8 +56,21 @@ class Player:
             times.append(random.choice(data_nd))
         return times
         
-    
-    
+NUM_PLAYERS = 8
+player_list = []
+
+while len(player_list) < NUM_PLAYERS:
+    new_person_wca_id = input("Enter a person's WCA ID: ")
+
+    if new_person_wca_id == "":
+        break
+    player_to_add = Player(new_person_wca_id)
+    if player_to_add.validPlayer is False:
+        print("ERROR")
+    else:
+        player_list.append(player_to_add)
+print(player_list)
+
 
 
 dwan = Player('2019RAMO05')
