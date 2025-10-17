@@ -13,15 +13,7 @@ def clear():
 
 class Player:
     def __init__(self, wca_id):
-        self.wca_id = wca_id
-        url = f"https://raw.githubusercontent.com/robiningelbrecht/wca-rest-api/master/api/persons/{self.wca_id}.json"
-        self.response = requests.get(url) 
-        if self.validPlayer():
-            self.player_data = self.response.json()
-            self.name = self.player_data['name']
-        else:
-            self.name = None
-
+        
         self.avg = None
         self.times = None
 
@@ -45,6 +37,18 @@ class Player:
         else:
             string += f"{self.times[solve_num - 1]:.2f}"
         print(string)
+
+
+class gennedPlayer(Player):
+    def __init__(self, wca_id):
+        self.wca_id = wca_id
+        url = f"https://raw.githubusercontent.com/robiningelbrecht/wca-rest-api/master/api/persons/{self.wca_id}.json"
+        self.response = requests.get(url) 
+        if self.validPlayer():
+            self.player_data = self.response.json()
+            self.name = self.player_data['name']
+        else:
+            self.name = None
 
     def getRecentResults(self, event):
         num_results = 0
@@ -96,6 +100,9 @@ class Player:
         self.avg = (total - fastest - slowest) / (3)
         self.times = times
 
+
+
+
 NUM_PLAYERS = 8
 EVENTS = [
     "222",      # 2x2x2 Cube
@@ -126,7 +133,7 @@ def main():
 
         if new_person_wca_id == "":
             break
-        player_to_add = Player(new_person_wca_id)
+        player_to_add = gennedPlayer(new_person_wca_id)
         if player_to_add.validPlayer() is False:
             print("ERROR")
         else:
