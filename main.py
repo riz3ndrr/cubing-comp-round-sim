@@ -5,8 +5,12 @@ from numpy import random
 
 RESULTS = 'results'
 NUM_RESULTS_TO_COLLECT = 50
-DNF = -1
+DNF = 999
 DNF_AVG = 999
+
+def clear():
+    print(chr(27) + "[2J")
+
 class Player:
     def __init__(self, wca_id):
         self.wca_id = wca_id
@@ -28,7 +32,20 @@ class Player:
         return f"{self.name}, WCA ID: {self.wca_id}"
     def __repr__(self):
         return self.__str__()
- 
+    
+    def printSinglesUpToSolveNum(self, solve_num):
+        string = f"{self.name}: "
+        for i in range(solve_num - 1):
+            if self.times[i] == DNF:
+                string += "DNF, "
+            else:
+                string += f"{self.times[i]:.2f}, "
+        if self.times[solve_num - 1] == DNF:
+            string += "DNF"
+        else:
+            string += f"{self.times[solve_num - 1]:.2f}"
+        print(string)
+
     def getRecentResults(self, event):
         num_results = 0
         times = []
@@ -73,12 +90,12 @@ class Player:
         if num_dnf > 1:
             self.avg = DNF_AVG
 
-        
         total = sum(times)
         fastest = min(times)
         slowest = max(times)
         self.avg = (total - fastest - slowest) / (3)
         self.times = times
+
 NUM_PLAYERS = 8
 EVENTS = [
     "222",      # 2x2x2 Cube
@@ -101,6 +118,7 @@ EVENTS = [
 ]
 
 def main():
+    clear()
     player_list = []
 
     while len(player_list) < NUM_PLAYERS:
@@ -114,18 +132,24 @@ def main():
         else:
             player_list.append(player_to_add)
 
-
+    clear()
     event = input("What event will you be competing in today? ")
     while event not in EVENTS:
         print("Invalid event")
         event = input("What event will you be competing in today? ")
-
     for player in player_list:
-        print(player)
         player.generateNewResults(event)
-        #pprint(player.times)
-        #print(player.avg)
 
+
+    for i in range(5):
+        clear()
+        print("#" * 15, "SOLVE ", i + 1, " ", "#" * 15)
+
+        player_list.sort(key = lambda x : min(x.times[:(i + 1)]))
+        for player in player_list:
+            player.printSinglesUpToSolveNum(i + 1)
+        input()
+    
     player_list.sort(key = lambda x : x.avg)
     for pos, player in enumerate(player_list):
         print(f"Position: {pos + 1} => {player.name}, Average = {player.avg:.2f}")
