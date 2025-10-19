@@ -5,11 +5,6 @@ from numpy import random
 customtkinter.set_appearance_mode("System")  # Modes: system (default), light, dark
 customtkinter.set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
 
-app = customtkinter.CTk()  # create CTk window like you do with the Tk window
-app.geometry("400x240")
-
-
-
 RESULTS = 'results'
 NUM_RESULTS_TO_COLLECT = 50
 DNF = 999
@@ -128,43 +123,52 @@ class gennedPlayer(Player):
         self.times = times
 
 
-def button_function():
-    inputted_wca_id = wca_id_entry.get()
-    new_player = gennedPlayer(inputted_wca_id)
-    if new_player.validPlayer() is False:
-        wca_id_entry_feedback_label.configure(text = "WCA ID invalid", text_color = "red")
-        return
-    wca_id_entry_feedback_label.configure(text = "Input successful", text_color = "green")
-    wca_id_entry_feedback_label.place(relx = 0.5, rely = 0.19, anchor = customtkinter.CENTER)
 
-    wca_id_entry.delete(0, len(inputted_wca_id))
-    new_player.generateNewResults('333')
-    print(new_player.times)
-    print(new_player.avg)
+class App(customtkinter.CTk):
+    def __init__(self):
+        super().__init__()
+        # Use CTkButton instead of tkinter Button
+        self.geometry("500x1000")
+        self.input_wca_id_button = customtkinter.CTkButton(master=self, text="Enter", command=self.button_function)
+        self.input_wca_id_button.place(relx=0.6, rely=0.225, anchor=customtkinter.CENTER)
 
-# Use CTkButton instead of tkinter Button
-input_wca_id_button = customtkinter.CTkButton(master=app, text="CTkButton", command=button_function)
-input_wca_id_button.place(relx=0.5, rely=0.5, anchor=customtkinter.CENTER)
-
-app_label = customtkinter.CTkLabel(app, 
-                                   text = "WCA Competition Round Simulator",
-                                   fg_color = "transparent",
-                                   font = ("TkDefaultFont", 35))
-app_label.place(relx = 0.5, rely = 0.1, anchor=customtkinter.CENTER)
+        self.app_label = customtkinter.CTkLabel(self, 
+                                        text = "WCA Competition Round Simulator",
+                                        fg_color = "transparent",
+                                        font = ("TkDefaultFont", 35))
+        self.app_label.place(relx = 0.5, rely = 0.1, anchor=customtkinter.CENTER)
 
 
-subtitle1 = customtkinter.CTkLabel(app,
-                                   text = "Enter your opponent(s)' WCA ID",
-                                   fg_color = "transparent",
-                                   font = ("TkDefaultFont", 20))
-subtitle1.place(relx = 0.5, rely = 0.15, anchor = customtkinter.CENTER)
+        self.subtitle1 = customtkinter.CTkLabel(self,
+                                        text = "Enter your opponent(s)' WCA ID",
+                                        fg_color = "transparent",
+                                        font = ("TkDefaultFont", 20))
+        self.subtitle1.place(relx = 0.5, rely = 0.15, anchor = customtkinter.CENTER)
 
 
-wca_id_entry = customtkinter.CTkEntry(app, placeholder_text="WCA IDs go here")
-wca_id_entry.place(relx = 0.5, rely = 0.225, anchor = customtkinter.CENTER)
+        self.wca_id_entry = customtkinter.CTkEntry(self, width = 200, placeholder_text="WCA IDs go here")
+        self.wca_id_entry.place(relx = 0.4, rely = 0.225, anchor = customtkinter.CENTER)
 
-wca_id_entry_feedback_label = customtkinter.CTkLabel(app, text = "WCA ID invalid",
-                                                     text_color = "red",
-                                                     font = ("TkDefaultFont", 15))
-wca_id_entry_feedback_label.place_forget()
+        self.wca_id_entry_feedback_label = customtkinter.CTkLabel(self, text = "WCA ID invalid",
+                                                            text_color = "red",
+                                                            font = ("TkDefaultFont", 15))
+        self.wca_id_entry_feedback_label.place_forget()
+
+
+    def button_function(self):
+        inputted_wca_id = self.wca_id_entry.get()
+        new_player = gennedPlayer(inputted_wca_id)
+        if new_player.validPlayer() is False:
+            self.wca_id_entry_feedback_label.configure(text = "WCA ID invalid", text_color = "red")
+            return
+        self.wca_id_entry_feedback_label.configure(text = "Input successful", text_color = "green")
+        self.wca_id_entry_feedback_label.place(relx = 0.5, rely = 0.19, anchor = customtkinter.CENTER)
+
+        self.wca_id_entry.delete(0, len(inputted_wca_id))
+        new_player.generateNewResults('333')
+        print(new_player.times)
+        print(new_player.avg)
+
+
+app = App()
 app.mainloop()
