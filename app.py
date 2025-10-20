@@ -86,11 +86,10 @@ class gennedPlayer(Player):
             self.rank = self.player_data['rank']['averages'][EVENT_INDEX_MAP[event]]['rank']['world']
             self.pr_avg = self.player_data['rank']['averages'][EVENT_INDEX_MAP[event]]['best'] / 100
             self.pr_sin = self.player_data['rank']['singles'][EVENT_INDEX_MAP[event]]['best'] / 100
+            self.avg, self.times = self.generateNewResults()
             #TODO MAKE THIS EFFICIENT
             self.mo50_recent = self.calculate_mean_of_50_recent_solves()
-        else:
-            self.name = None
-    
+
     def __str__(self):
         return f"{self.name}, WCA ID: {self.wca_id}"
     
@@ -109,13 +108,13 @@ class gennedPlayer(Player):
             i += 1
         return sum(result) / len(result)
     
-    def getRecentResults(self, event):
+    def getRecentResults(self):
         num_results = 0
         times = []
         if self.validPlayer():
             for comp, results in self.player_data[RESULTS].items():
                 if event in results:
-                    for result in results[event]:
+                    for result in results[self.event]:
                         for solve in result['solves']:
                             if solve != DNF:
                                 times.append(solve) 
@@ -137,8 +136,8 @@ class gennedPlayer(Player):
         dist[dnf_indices] = DNF
         return dist
 
-    def generateNewResults(self, event):
-        recent_results = self.getRecentResults(event)
+    def generateNewResults(self):
+        recent_results = self.getRecentResults()
         data_nd = self.calcNormalDistribution(recent_results, 98)
         
         times = []
@@ -156,8 +155,8 @@ class gennedPlayer(Player):
         total = sum(times)
         fastest = min(times)
         slowest = max(times)
-        self.avg = (total - fastest - slowest) / (3)
-        self.times = times
+        avg = (total - fastest - slowest) / (3)
+        return avg, times
 
 
 
@@ -424,7 +423,6 @@ class App(customtkinter.CTk):
         self.players[new_player] = new_row
         self.players_row_offsety = 0.05 + 0.25 * len(self.players)
         print(len(self.players))
-        new_player.generateNewResults('333')
         print(new_player.times)
         print(new_player.avg)
 
