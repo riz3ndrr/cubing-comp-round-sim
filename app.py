@@ -53,15 +53,41 @@ class userPlayer(Player):
         slowest = max(self.times)
         self.avg = (total - fastest - slowest) / (3)
 
+EVENT_INDEX_MAP = {
+    "222": 0,
+    "333": 1,
+    "444": 2,
+    "555": 3,
+    "666": 4,
+    "777": 5,
+    "333bf": 6,
+    "333fm": 7,
+    "333oh": 8,
+    "clock": 9,
+    "minx": 10,
+    "pyram": 11,
+    "skewb": 12,
+    "sq1": 13,
+    "444bf": 14,
+    "555bf": 15,
+    "333mbf": 16
+}
 
 class gennedPlayer(Player):
-    def __init__(self, wca_id):
+    def __init__(self, wca_id, event):
         self.wca_id = wca_id
         url = f"https://raw.githubusercontent.com/robiningelbrecht/wca-rest-api/master/api/persons/{self.wca_id}.json"
         self.response = requests.get(url) 
+        self.event = event
         if self.validPlayer():
             self.player_data = self.response.json()
             self.name = self.player_data['name']
+            self.country = self.player_data['country']
+            self.rank = self.player_data['rank']['averages'][EVENT_INDEX_MAP[event]]['rank']['world']
+            self.pr_avg = self.player_data['rank']['averages'][EVENT_INDEX_MAP[event]]['best'] / 100
+            self.pr_sin = self.player_data['rank']['singles'][EVENT_INDEX_MAP[event]]['best'] / 100
+            #TODO MAKE THIS EFFICIENT
+            self.mo50_recent = self.calculate_mean_of_50_recent_solves()
         else:
             self.name = None
     
@@ -73,6 +99,15 @@ class gennedPlayer(Player):
 
     def validPlayer(self):
         return self.response.status_code == 200
+
+    def calculate_mean_of_50_recent_solves(self):
+        recent_results = self.getRecentResults(self.event)
+        result = []
+        i = 0
+        while i < 50 and len(recent_results) > 0:
+            result.append( (recent_results.pop() / 100) )
+            i += 1
+        return sum(result) / len(result)
     
     def getRecentResults(self, event):
         num_results = 0
@@ -147,37 +182,124 @@ EVENT_NAMES = [
 ]
 
 class PlayerRowLabel():
-    def __init__(self, frame, x, y, wca_id, name, remove_player_func, player):
+    ## TODO MAKE THIS EFFFICIENT
+    def __init__(self, root, x, y, wca_id, name, remove_player_func, player, country, rank, pr_avg, pr_sin):
         #super().__init__(frame)
+        self.container = customtkinter.CTkFrame(root, width=500, height=150, fg_color = "#ffffff", border_color = "grey", border_width = 1)
+        self.container.place(relx = 0.05, rely = y)
+
         self.player = player
-        self.player_wca_label = customtkinter.CTkLabel(frame,
-                                                   text = wca_id,
-                                                    fg_color = "transparent",
+        self.player_wca_label = customtkinter.CTkLabel(self.container,
+                                                    text = wca_id,
+                                                    text_color = "grey",
                                                     font = ("TkDefaultFont", 17))
 
-        self.player_name_label = customtkinter.CTkLabel(frame,
+        self.player_name_label = customtkinter.CTkLabel(self.container,
                                                         text = name,
-                                                        fg_color = "transparent",
-                                                        font = ("TkDefaultFont", 17))
+                                                        font = ("TkDefaultFont", 20))
         self.x = x
-        self.player_wca_label.place(relx = self.x, rely = y, anchor = customtkinter.CENTER)
-        self.player_name_label.place(relx = self.x + 0.25, rely = y, anchor = customtkinter.CENTER)
+        self.player_name_label.place(relx = 0.055, rely = 0.125, anchor = customtkinter.W)
+        self.player_wca_label.place(relx = 0.85, rely = 0.9, anchor = customtkinter.CENTER)
 
-        self.x_button = customtkinter.CTkButton(master = frame, text = "X", fg_color = "#e01010", hover_color = "#c70e0e", command = self.remove_row, width = 50)
-        self.x_button.place(relx = x + 0.4, rely = y, anchor = customtkinter.CENTER)
+        
+        ## PR AVG LABELS
+        self.pr_avg_header = customtkinter.CTkLabel(self.container,
+                                                    text = "PR Average:",
+                                                    text_color = "grey",
+                                                    font = ("TkDefaultFont", 17))
+
+        self.pr_avg_label = customtkinter.CTkLabel(self.container,
+                                                    text = pr_avg,
+                                                    text_color = "black",
+                                                    font = ("TkDefaultFont", 19))
+
+        self.pr_avg_header.place(relx = 0.175, rely = 0.325, anchor = customtkinter.CENTER)
+        self.pr_avg_label.place(relx = 0.12, rely = 0.475, anchor = customtkinter.CENTER)
+
+
+        ## PR SINGLE LABELS
+        self.pr_sin_header = customtkinter.CTkLabel(self.container,
+                                                    text = "PR Single:    ",
+                                                    text_color = "grey",
+                                                    font = ("TkDefaultFont", 17))
+
+        self.pr_sin_label = customtkinter.CTkLabel(self.container,
+                                                    text = pr_sin,
+                                                    text_color = "black",
+                                                    font = ("TkDefaultFont", 19))
+            
+        self.pr_sin_header.place(relx = 0.175, rely = 0.325 + 0.3, anchor = customtkinter.CENTER)
+        self.pr_sin_label.place(relx = 0.12, rely = 0.475 + 0.3, anchor = customtkinter.CENTER)
+
+
+        ## WORLD RANK LABELS
+        self.wr_header = customtkinter.CTkLabel(self.container,
+                                                    text = "World Ranking:    ",
+                                                    text_color = "grey",
+                                                    font = ("TkDefaultFont", 17),
+                                                    width = 70)
+
+        self.wr_label = customtkinter.CTkLabel(self.container,
+                                                    text = rank,
+                                                    text_color = "black",
+                                                    font = ("TkDefaultFont", 19),
+                                                    width = 70)
+     
+        self.wr_header.place(relx = 0.175 + 0.4, rely = 0.325 + 0.3, anchor = customtkinter.CENTER)
+        self.wr_label.place(relx = 0.12 + 0.4, rely = 0.475 + 0.3, anchor = customtkinter.CENTER)
+   
+        ## COUNTRY LABELS
+        self.country_header = customtkinter.CTkLabel(self.container,
+                                                    text = "Representing:    ",
+                                                    text_color = "grey",
+                                                    font = ("TkDefaultFont", 17),
+                                                    width = 70)
+
+        self.country_label = customtkinter.CTkLabel(self.container,
+                                                    text = country,
+                                                    text_color = "black",
+                                                    font = ("TkDefaultFont", 19),
+                                                    width = 100)
+     
+        self.country_header.place(relx = 0.175 + 0.4, rely = 0.325, anchor = customtkinter.CENTER)
+        self.country_label.place(relx = 0.15 + 0.4, rely = 0.475, anchor = customtkinter.CENTER)
+   
+        ## RECENT RESULTS LABELS
+        self.recent_results_header = customtkinter.CTkLabel(self.container,
+                                                            text = "Recent Mo50:",
+                                                    text_color = "grey",
+                                                    font = ("TkDefaultFont", 17),
+                                                    width = 70)
+
+        self.recent_results_label = customtkinter.CTkLabel(self.container,
+                                                    text = f"{player.mo50_recent:.2f}",
+                                                    text_color = "black",
+                                                    font = ("TkDefaultFont", 19),
+                                                    width = 100)
+     
+        self.recent_results_header.place(relx = 0.175 + 0.7, rely = 0.325, anchor = customtkinter.CENTER)
+        self.recent_results_label.place(relx = 0.15 + 0.7, rely = 0.475, anchor = customtkinter.CENTER)
+
+
+
+
+
+        ## X BUTTON
+        self.x_button = customtkinter.CTkButton(master = self.container, text = "X", text_color = "black", bg_color = "transparent", 
+                                                hover_color = "grey", command = self.remove_row, width = 20)
+        self.x_button.place(relx = 0.95, rely = 0.15, anchor = customtkinter.CENTER)
         self.remove_player_callback_func = remove_player_func
+
+        
 
     def remove_row(self):
         self.remove_player_callback_func(self.player)
-        self.player_wca_label.destroy()
-        self.player_name_label.destroy()
-        self.x_button.destroy()
+        for widget in self.container.winfo_children():
+            widget.destroy()
+        self.container.destroy()
 
     def change_pos(self, new_y):
-        self.player_wca_label.place(relx = self.x, rely = new_y, anchor = customtkinter.CENTER)
-        self.player_name_label.place(relx = self.x + 0.25, rely = new_y, anchor = customtkinter.CENTER)
-        self.x_button.place(relx = self.x + 0.4, rely = new_y, anchor = customtkinter.CENTER)
-
+        self.container.place(relx = 0.05, rely = new_y) 
 
 class App(customtkinter.CTk):
     def __init__(self):
@@ -190,27 +312,28 @@ class App(customtkinter.CTk):
                                         font = ("TkDefaultFont", 35))
         self.app_label.place(relx = 0.5, rely = 0.1, anchor=customtkinter.CENTER)
 
-
+        # ADD COMPETITOR
         self.subtitle1 = customtkinter.CTkLabel(self,
                                         text = "Add Competitor",
                                         fg_color = "transparent",
                                         font = ("TkDefaultFont", 20))
-        self.subtitle1.place(relx = 0.5, rely = 0.175, anchor = customtkinter.CENTER)
+        self.subtitle1.place(relx = 0.2, rely = 0.185, anchor = customtkinter.CENTER)
 
 
-        self.wca_id_entry = customtkinter.CTkEntry(self, width = 200, placeholder_text="Enter your opponent(s)' WCA ID")
-        self.wca_id_entry.place(relx = 0.7, rely = 0.135, anchor = customtkinter.CENTER)
+        self.wca_id_entry = customtkinter.CTkEntry(self, width = 250, placeholder_text="Enter your opponent(s)' WCA ID")
+        self.wca_id_entry.place(relx = 0.275, rely = 0.225, anchor = customtkinter.CENTER)
 
 
         self.input_wca_id_button = customtkinter.CTkButton(master=self, text="Enter", command=self.input_wca_id_button_function)
-        self.input_wca_id_button.place(relx=0.9, rely=0.135, anchor=customtkinter.CENTER)
+        self.input_wca_id_button.place(relx = 0.5, rely = 0.225, anchor=customtkinter.CENTER)
 
         self.wca_id_entry_feedback_label = customtkinter.CTkLabel(self, text = "WCA ID invalid",
                                                             text_color = "red",
                                                             font = ("TkDefaultFont", 20))
         self.wca_id_entry_feedback_label.place_forget()
 
-
+        
+        ## CONFIGURE EVENT
         self.event_label = customtkinter.CTkLabel(self, 
                                         text = "Event: ",
                                         fg_color = "transparent",
@@ -224,21 +347,25 @@ class App(customtkinter.CTk):
         
         self.event_dropdown.place(relx=0.35, rely = 0.1215)
 
-    
-        self.players_frame = customtkinter.CTkFrame(self, width=700, height=700, fg_color = "#ffffff", border_color = "black", border_width = 2)
-        self.players_frame.place(relx=0.5, rely=0.6, anchor = customtkinter.CENTER)
         
-        self.players_frame_header1_offsetx = 0.05
-        self.players_frame_header2_offsetx = self.players_frame_header1_offsetx + 0.25
-        self.player_frame_header1= customtkinter.CTkLabel(self.players_frame, text = "WCA ID", fg_color = "transparent", font = ("TkDefaultFont", 25))
-        self.player_frame_header1.place(relx = self.players_frame_header1_offsetx, rely = 0.05)
+        ## FRAME / COMPETITORS CONTAINER ##
+        self.players_frame = customtkinter.CTkFrame(self, width=700, height=700, fg_color = "#ffffff", border_color = "black", border_width = 2)
+        self.players_frame.place(relx=0.5, rely=0.65, anchor = customtkinter.CENTER)
 
-        self.player_frame_header2= customtkinter.CTkLabel(self.players_frame, text = "Name", fg_color = "transparent", font = ("TkDefaultFont", 25))
-        self.player_frame_header2.place(relx = self.players_frame_header2_offsetx, rely = 0.05)
+        self.players_frame_header = customtkinter.CTkLabel(self, text = "Competitors", fg_color = "transparent", font = ("TkDefaultFont", 30))
+        self.players_frame_header.place(relx = 0.1, rely = 0.25)
+        
+       # self.players_frame_header1_offsetx = 0.05
+       # self.players_frame_header2_offsetx = self.players_frame_header1_offsetx + 0.25
+       # self.player_frame_header1= customtkinter.CTkLabel(self.players_frame, text = "WCA ID", fg_color = "transparent", font = ("TkDefaultFont", 25))
+       # self.player_frame_header1.place(relx = self.players_frame_header1_offsetx, rely = 0.05)
+
+       # self.player_frame_header2= customtkinter.CTkLabel(self.players_frame, text = "Name", fg_color = "transparent", font = ("TkDefaultFont", 25))
+       # self.player_frame_header2.place(relx = self.players_frame_header2_offsetx, rely = 0.05)
 
 
         self.players = {}
-        self.players_row_offsety = 0.15
+        self.players_row_offsety = 0.05
         
 
     def event_dropdown_callback(self, choice):
@@ -252,8 +379,8 @@ class App(customtkinter.CTk):
 
     def shift_player_rows(self): 
         for i, row in enumerate(self.players.values()):
-            row.change_pos(0.15 + 0.1 * i)
-        self.players_row_offsety = 0.15 + 0.1 * len(self.players)
+            row.change_pos(0.05 + 0.25 * i)
+        self.players_row_offsety = 0.05 + 0.25 * len(self.players)
 
     
     def playerAlreadyExists(self, wca_id):
@@ -267,13 +394,14 @@ class App(customtkinter.CTk):
         inputted_wca_id = self.wca_id_entry.get()
         
 
-        self.wca_id_entry_feedback_label.place(relx = 0.5, rely = 0.20, anchor = customtkinter.CENTER)
+        self.wca_id_entry_feedback_label.place(relx = 0.675, rely = 0.225, anchor = customtkinter.CENTER)
 
         if self.playerAlreadyExists(inputted_wca_id):
             self.wca_id_entry_feedback_label.configure(text = "Player Already Exists", text_color = "red")
             return    
 
-        new_player = gennedPlayer(inputted_wca_id)
+        new_player = gennedPlayer(inputted_wca_id, '333')
+        pprint(new_player.rank)
         if new_player.validPlayer() is False:
             self.wca_id_entry_feedback_label.configure(text = "WCA ID invalid", text_color = "red")
             return
@@ -282,15 +410,19 @@ class App(customtkinter.CTk):
         self.wca_id_entry.delete(0, len(inputted_wca_id))
         
         new_row = PlayerRowLabel(self.players_frame,
-                                 self.players_frame_header1_offsetx + 0.08,
+                                 3,
                                  self.players_row_offsety,
                                  new_player.wca_id,
                                  new_player.name,
                                  self.remove_player,
-                                 new_player)
+                                 new_player,
+                                 new_player.country,
+                                 new_player.rank,
+                                 new_player.pr_avg,
+                                 new_player.pr_sin)
 
         self.players[new_player] = new_row
-        self.players_row_offsety = 0.15 + 0.1 * len(self.players)
+        self.players_row_offsety = 0.05 + 0.25 * len(self.players)
         print(len(self.players))
         new_player.generateNewResults('333')
         print(new_player.times)
