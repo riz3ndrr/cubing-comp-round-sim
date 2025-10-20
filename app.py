@@ -182,19 +182,19 @@ EVENT_NAMES = [
 
 class PlayerRowLabel():
     ## TODO MAKE THIS EFFFICIENT
-    def __init__(self, root, x, y, wca_id, name, remove_player_func, player, country, rank, pr_avg, pr_sin):
+    def __init__(self, root, x, y, remove_player_func, player):
         #super().__init__(frame)
         self.container = customtkinter.CTkFrame(root, width=400, height=150, fg_color = "#ffffff", border_color = "grey", border_width = 1)
         self.container.grid(row = y, column = 0, sticky = "ew", padx = 15, pady=15)
         #self.container.grid_propagate(False)
         self.player = player
         self.player_wca_label = customtkinter.CTkLabel(self.container,
-                                                    text = wca_id,
+                                                    text = player.wca_id,
                                                     text_color = "grey",
                                                     font = ("TkDefaultFont", 17))
 
         self.player_name_label = customtkinter.CTkLabel(self.container,
-                                                        text = name,
+                                                        text = player.name,
                                                         font = ("TkDefaultFont", 20))
         self.x = x
         self.player_name_label.grid(row = 0, column = 0, sticky = 'W', pady = 2, padx = 4,)
@@ -208,7 +208,7 @@ class PlayerRowLabel():
                                                     font = ("TkDefaultFont", 17))
 
         self.pr_avg_label = customtkinter.CTkLabel(self.container,
-                                                    text = pr_avg,
+                                                    text = player.pr_avg,
                                                     text_color = "black",
                                                     font = ("TkDefaultFont", 19))
 
@@ -222,7 +222,7 @@ class PlayerRowLabel():
                                                     font = ("TkDefaultFont", 17))
 
         self.pr_sin_label = customtkinter.CTkLabel(self.container,
-                                                    text = pr_sin,
+                                                    text = player.pr_sin,
                                                     text_color = "black",
                                                     font = ("TkDefaultFont", 19))
             
@@ -238,7 +238,7 @@ class PlayerRowLabel():
                                                     width = 70)
 
         self.wr_label = customtkinter.CTkLabel(self.container,
-                                                    text = rank,
+                                                    text = player.rank,
                                                     text_color = "black",
                                                     font = ("TkDefaultFont", 19),
                                                     width = 70)
@@ -254,7 +254,7 @@ class PlayerRowLabel():
                                                     width = 70)
 
         self.country_label = customtkinter.CTkLabel(self.container,
-                                                    text = country,
+                                                    text = player.country,
                                                     text_color = "black",
                                                     font = ("TkDefaultFont", 19),
                                                     width = 100)
@@ -354,20 +354,8 @@ class App(customtkinter.CTk):
         ## FRAME / COMPETITORS CONTAINER ##
         self.players_frame = customtkinter.CTkScrollableFrame(self, width=700, height=600, fg_color = "#ffffff", border_color = "black", border_width = 2)
         self.players_frame.place(relx=0.5, rely=0.65, anchor = customtkinter.CENTER)
-        self.players_frame.grid_columnconfigure(0, weight=1)
-
-
         self.players_frame_header = customtkinter.CTkLabel(self, text = "Competitors", fg_color = "transparent", font = ("TkDefaultFont", 30))
         self.players_frame_header.place(relx = 0.1, rely = 0.25)
-        
-       # self.players_frame_header1_offsetx = 0.05
-       # self.players_frame_header2_offsetx = self.players_frame_header1_offsetx + 0.25
-       # self.player_frame_header1= customtkinter.CTkLabel(self.players_frame, text = "WCA ID", fg_color = "transparent", font = ("TkDefaultFont", 25))
-       # self.player_frame_header1.place(relx = self.players_frame_header1_offsetx, rely = 0.05)
-
-       # self.player_frame_header2= customtkinter.CTkLabel(self.players_frame, text = "Name", fg_color = "transparent", font = ("TkDefaultFont", 25))
-       # self.player_frame_header2.place(relx = self.players_frame_header2_offsetx, rely = 0.05)
-
 
         self.players = {}
         self.players_row_offsety = 0
@@ -417,14 +405,8 @@ class App(customtkinter.CTk):
         new_row = PlayerRowLabel(self.players_frame,
                                  3,
                                  self.players_row_offsety,
-                                 new_player.wca_id,
-                                 new_player.name,
                                  self.remove_player,
-                                 new_player,
-                                 new_player.country,
-                                 new_player.rank,
-                                 new_player.pr_avg,
-                                 new_player.pr_sin)
+                                 new_player)
 
         self.players[new_player] = new_row
         self.players_row_offsety = len(self.players)
