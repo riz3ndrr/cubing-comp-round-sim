@@ -124,13 +124,57 @@ class gennedPlayer(Player):
 
 
 
+EVENT_NAMES = [
+    "2x2x2 Cube",
+    "3x3x3 Cube",
+    "3x3x3 Blindfolded",
+    "3x3x3 Fewest Moves",
+    "3x3x3 One-Handed",
+    "4x4x4 Cube",
+    "4x4x4 Blindfolded",
+    "5x5x5 Cube",
+    "5x5x5 Blindfolded",
+    "6x6x6 Cube",
+    "7x7x7 Cube",
+    "Clock",
+    "Megaminx",
+    "Pyraminx",
+    "Skewb",
+    "Square-1",
+    "3x3x3 Multi-Blind"
+]
+
+class PlayerRowLabel():
+    def __init__(self, frame, x, y, wca_id, name, remove_player_func, player):
+        #super().__init__(frame)
+        self.player = player
+        self.player_wca_label = customtkinter.CTkLabel(frame,
+                                                   text = wca_id,
+                                                    fg_color = "transparent",
+                                                    font = ("TkDefaultFont", 17))
+
+        self.player_name_label = customtkinter.CTkLabel(frame,
+                                                        text = name,
+                                                        fg_color = "transparent",
+                                                        font = ("TkDefaultFont", 17))
+        self.player_wca_label.place(relx = x, rely = y, anchor = customtkinter.CENTER)
+        self.player_name_label.place(relx = x + 0.25, rely = y, anchor = customtkinter.CENTER)
+
+        self.x_button = customtkinter.CTkButton(master = frame, text = "X", fg_color = "#e01010", hover_color = "#c70e0e", command = self.remove_row, width = 50)
+        self.x_button.place(relx = x + 0.4, rely = y, anchor = customtkinter.CENTER)
+        self.remove_player_callback_func = remove_player_func
+
+    def remove_row(self):
+        self.remove_player_callback_func(self.player)
+        self.player_wca_label.destroy()
+        self.player_name_label.destroy()
+        self.x_button.destroy()
+
+
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
-        # Use CTkButton instead of tkinter Button
-        self.geometry("500x1000")
-        self.input_wca_id_button = customtkinter.CTkButton(master=self, text="Enter", command=self.button_function)
-        self.input_wca_id_button.place(relx=0.6, rely=0.225, anchor=customtkinter.CENTER)
+        self.geometry("500x1000") 
 
         self.app_label = customtkinter.CTkLabel(self, 
                                         text = "WCA Competition Round Simulator",
@@ -140,14 +184,18 @@ class App(customtkinter.CTk):
 
 
         self.subtitle1 = customtkinter.CTkLabel(self,
-                                        text = "Enter your opponent(s)' WCA ID",
+                                        text = "Add Competitor",
                                         fg_color = "transparent",
                                         font = ("TkDefaultFont", 20))
-        self.subtitle1.place(relx = 0.5, rely = 0.15, anchor = customtkinter.CENTER)
+        self.subtitle1.place(relx = 0.5, rely = 0.175, anchor = customtkinter.CENTER)
 
 
-        self.wca_id_entry = customtkinter.CTkEntry(self, width = 200, placeholder_text="WCA IDs go here")
-        self.wca_id_entry.place(relx = 0.4, rely = 0.225, anchor = customtkinter.CENTER)
+        self.wca_id_entry = customtkinter.CTkEntry(self, width = 200, placeholder_text="Enter your opponent(s)' WCA ID")
+        self.wca_id_entry.place(relx = 0.7, rely = 0.135, anchor = customtkinter.CENTER)
+
+
+        self.input_wca_id_button = customtkinter.CTkButton(master=self, text="Enter", command=self.input_wca_id_button_function)
+        self.input_wca_id_button.place(relx=0.9, rely=0.135, anchor=customtkinter.CENTER)
 
         self.wca_id_entry_feedback_label = customtkinter.CTkLabel(self, text = "WCA ID invalid",
                                                             text_color = "red",
@@ -155,7 +203,46 @@ class App(customtkinter.CTk):
         self.wca_id_entry_feedback_label.place_forget()
 
 
-    def button_function(self):
+        self.event_label = customtkinter.CTkLabel(self, 
+                                        text = "Event: ",
+                                        fg_color = "transparent",
+                                        font = ("TkDefaultFont", 25))
+        self.event_label.place(relx = 0.3, rely = 0.135, anchor=customtkinter.CENTER)
+
+        self.event = customtkinter.StringVar(value=EVENT_NAMES[0])
+        self.event_dropdown = customtkinter.CTkOptionMenu(self, values=EVENT_NAMES,
+                                         command=self.event_dropdown_callback,
+                                         variable=self.event)
+        
+        self.event_dropdown.place(relx=0.35, rely = 0.1215)
+
+    
+        self.players_frame = customtkinter.CTkFrame(self, width=700, height=700, fg_color = "#ffffff", border_color = "black", border_width = 2)
+        self.players_frame.place(relx=0.5, rely=0.5, anchor = customtkinter.CENTER)
+        
+        self.players_frame_header1_offsetx = 0.05
+        self.players_frame_header2_offsetx = self.players_frame_header1_offsetx + 0.25
+        self.players_row_offsety = 0.15
+        self.player_frame_header1= customtkinter.CTkLabel(self.players_frame, text = "WCA ID", fg_color = "transparent", font = ("TkDefaultFont", 25))
+        self.player_frame_header1.place(relx = self.players_frame_header1_offsetx, rely = 0.05)
+
+        self.player_frame_header2= customtkinter.CTkLabel(self.players_frame, text = "Name", fg_color = "transparent", font = ("TkDefaultFont", 25))
+        self.player_frame_header2.place(relx = self.players_frame_header2_offsetx, rely = 0.05)
+
+
+        self.players_list = []
+
+
+
+    def event_dropdown_callback(self, choice):
+        print("optionmenu dropdown clicked:", choice)
+
+    
+    def remove_player(self, player):
+        if player in self.players_list:
+            self.players_list.remove(player)
+
+    def input_wca_id_button_function(self):
         inputted_wca_id = self.wca_id_entry.get()
         new_player = gennedPlayer(inputted_wca_id)
         if new_player.validPlayer() is False:
@@ -163,8 +250,20 @@ class App(customtkinter.CTk):
             return
         self.wca_id_entry_feedback_label.configure(text = "Input successful", text_color = "green")
         self.wca_id_entry_feedback_label.place(relx = 0.5, rely = 0.19, anchor = customtkinter.CENTER)
-
         self.wca_id_entry.delete(0, len(inputted_wca_id))
+ 
+        new_row = PlayerRowLabel(self.players_frame,
+                                 self.players_frame_header1_offsetx + 0.08,
+                                 self.players_row_offsety,
+                                 new_player.wca_id,
+                                 new_player.name,
+                                 self.remove_player,
+                                 new_player)
+        self.players_list.append(new_player)
+        self.players_row_offsety += 0.1
+
+
+
         new_player.generateNewResults('333')
         print(new_player.times)
         print(new_player.avg)
