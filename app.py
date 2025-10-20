@@ -160,26 +160,25 @@ class gennedPlayer(Player):
 
 
 
-EVENT_NAMES = [
-    "2x2x2 Cube",
-    "3x3x3 Cube",
-    "3x3x3 Blindfolded",
-    "3x3x3 Fewest Moves",
-    "3x3x3 One-Handed",
-    "4x4x4 Cube",
-    "4x4x4 Blindfolded",
-    "5x5x5 Cube",
-    "5x5x5 Blindfolded",
-    "6x6x6 Cube",
-    "7x7x7 Cube",
-    "Clock",
-    "Megaminx",
-    "Pyraminx",
-    "Skewb",
-    "Square-1",
-    "3x3x3 Multi-Blind"
-]
-
+EVENT_CODES = {
+    "2x2x2 Cube": "222",
+    "3x3x3 Cube": "333",
+    "3x3x3 Blindfolded": "333bf",
+    "3x3x3 Fewest Moves": "333fm",
+    "3x3x3 One-Handed": "333oh",
+    "4x4x4 Cube": "444",
+    "4x4x4 Blindfolded": "444bf",
+    "5x5x5 Cube": "555",
+    "5x5x5 Blindfolded": "555bf",
+    "6x6x6 Cube": "666",
+    "7x7x7 Cube": "777",
+    "Clock": "clock",
+    "Megaminx": "minx",
+    "Pyraminx": "pyram",
+    "Skewb": "skewb",
+    "Square-1": "sq1",
+    "3x3x3 Multi-Blind": "333mbf"
+}
 class PlayerRowLabel():
     ## TODO MAKE THIS EFFFICIENT
     def __init__(self, root, x, y, remove_player_func, player):
@@ -197,7 +196,7 @@ class PlayerRowLabel():
             display_name = display_name[:NAME_DISPLAY_LENGTH - 3] + "..."
         elif len(display_name) < NAME_DISPLAY_LENGTH:
             display_name += " " * (NAME_DISPLAY_LENGTH - len(display_name))
-        print(display_name, "A", len(display_name))
+
         self.player_name_label = customtkinter.CTkLabel(self.container,
                                                         text = display_name,
 
@@ -315,22 +314,22 @@ class App(customtkinter.CTk):
                                         text = "WCA Competition Round Simulator",
                                         fg_color = "transparent",
                                         font = ("TkDefaultFont", 35))
-        self.app_label.place(relx = 0.5, rely = 0.1, anchor=customtkinter.CENTER)
+        self.app_label.place(relx = 0.5, rely = 0.05, anchor=customtkinter.CENTER)
 
         # ADD COMPETITOR
         self.subtitle1 = customtkinter.CTkLabel(self,
                                         text = "Add Competitor",
                                         fg_color = "transparent",
-                                        font = ("TkDefaultFont", 20))
+                                        font = ("TkDefaultFont", 25))
         self.subtitle1.place(relx = 0.2, rely = 0.185, anchor = customtkinter.CENTER)
 
 
-        self.wca_id_entry = customtkinter.CTkEntry(self, width = 250, placeholder_text="Enter your opponent(s)' WCA ID")
-        self.wca_id_entry.place(relx = 0.275, rely = 0.225, anchor = customtkinter.CENTER)
+        self.wca_id_entry = customtkinter.CTkEntry(self, width = 225, placeholder_text="Enter your opponent(s)' WCA ID")
+        self.wca_id_entry.place(relx = 0.25, rely = 0.225, anchor = customtkinter.CENTER)
 
 
         self.input_wca_id_button = customtkinter.CTkButton(master=self, text="Enter", command=self.input_wca_id_button_function)
-        self.input_wca_id_button.place(relx = 0.5, rely = 0.225, anchor=customtkinter.CENTER)
+        self.input_wca_id_button.place(relx = 0.45, rely = 0.225, anchor=customtkinter.CENTER)
 
         self.wca_id_entry_feedback_label = customtkinter.CTkLabel(self, text = "WCA ID invalid",
                                                             text_color = "red",
@@ -343,14 +342,15 @@ class App(customtkinter.CTk):
                                         text = "Event: ",
                                         fg_color = "transparent",
                                         font = ("TkDefaultFont", 25))
-        self.event_label.place(relx = 0.3, rely = 0.135, anchor=customtkinter.CENTER)
+        self.event_label.place(relx = 0.6, rely = 0.185, anchor=customtkinter.CENTER)
 
-        self.event = customtkinter.StringVar(value=EVENT_NAMES[0])
-        self.event_dropdown = customtkinter.CTkOptionMenu(self, values=EVENT_NAMES,
+        #self.event = customtkinter.StringVar(value=list(EVENT_CODES.keys())[0])
+        self.event_dropdown = customtkinter.CTkOptionMenu(self, values=list(EVENT_CODES.keys()),
                                          command=self.event_dropdown_callback,
-                                         variable=self.event)
+                                         )
         
-        self.event_dropdown.place(relx=0.35, rely = 0.1215)
+        self.event_dropdown.place(relx=0.55, rely = 0.21)
+        self.event = None
 
         
         ## FRAME / COMPETITORS CONTAINER ##
@@ -366,9 +366,19 @@ class App(customtkinter.CTk):
         
 
     def event_dropdown_callback(self, choice):
-        print("optionmenu dropdown clicked:", choice)
+        if self.event != choice:
+            self.event = choice
+            self.clear_players()
 
-    
+    def clear_players(self):
+        for player, player_row in self.players.items():
+            for widget in player_row.container.winfo_children():
+                widget.destroy()
+            player_row.container.destroy() 
+        self.players.clear()
+
+
+            
     def remove_player(self, player):
         if player in self.players:
             self.players.pop(player)  
@@ -404,7 +414,7 @@ class App(customtkinter.CTk):
             self.wca_id_entry_feedback_label.configure(text = "Player Already Exists", text_color = "red")
             return    
 
-        new_player = gennedPlayer(inputted_wca_id, '333')
+        new_player = gennedPlayer(inputted_wca_id, EVENT_CODES[self.event_dropdown.get()])
         pprint(new_player.rank)
         if new_player.validPlayer() is False:
             self.wca_id_entry_feedback_label.configure(text = "WCA ID invalid", text_color = "red")
