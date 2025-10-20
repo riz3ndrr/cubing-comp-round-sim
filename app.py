@@ -182,23 +182,28 @@ EVENT_NAMES = [
 
 class PlayerRowLabel():
     ## TODO MAKE THIS EFFFICIENT
-    def __init__(self, root, x, y, remove_player_func, player):
-        #super().__init__(frame)
-        self.container = customtkinter.CTkFrame(root, width=400, height=150, fg_color = "#ffffff", border_color = "grey", border_width = 1)
-        self.container.grid(row = y, column = 0, sticky = "ew", padx = 15, pady=15)
+    def __init__(self, root, y, remove_player_func, player):
+        self.container = customtkinter.CTkFrame(root, width=500, height=200, fg_color = "#ffffff", border_color = "grey", border_width = 1)
+        self.container.grid(row = y, column = 0, sticky = "", padx = 15, pady=15)
         #self.container.grid_propagate(False)
         self.player = player
         self.player_wca_label = customtkinter.CTkLabel(self.container,
                                                     text = player.wca_id,
                                                     text_color = "grey",
                                                     font = ("TkDefaultFont", 17))
-
+        NAME_DISPLAY_LENGTH = 16
+        display_name = player.name
+        if len(display_name) > NAME_DISPLAY_LENGTH:
+            display_name = display_name[:NAME_DISPLAY_LENGTH - 3] + "..."
+        elif len(display_name) < NAME_DISPLAY_LENGTH:
+            display_name += " " * (NAME_DISPLAY_LENGTH - len(display_name))
+        print(display_name, "A", len(display_name))
         self.player_name_label = customtkinter.CTkLabel(self.container,
-                                                        text = player.name,
-                                                        font = ("TkDefaultFont", 20))
-        self.x = x
+                                                        text = display_name,
+
+                                                        font = ("Courier New", 20))
         self.player_name_label.grid(row = 0, column = 0, sticky = 'W', pady = 2, padx = 4,)
-        self.player_wca_label.grid(row = 5, column = 5, sticky = 'W', pady = 2, padx = 2)
+        self.player_wca_label.grid(row = 5, column = 2, sticky = 'W', pady = 2, padx = 2)
 
         
         ## PR AVG LABELS
@@ -212,12 +217,12 @@ class PlayerRowLabel():
                                                     text_color = "black",
                                                     font = ("TkDefaultFont", 19))
 
-        self.pr_avg_header.grid(row = 1, column = 0, sticky = 'W', pady = 2, padx = 4)
-        self.pr_avg_label.grid(row = 2, column = 0, sticky = 'W', pady = 2, padx = 4)
+        self.pr_avg_header.grid(row = 1, column = 0, sticky = '', pady = 2, padx = 4)
+        self.pr_avg_label.grid(row = 2, column = 0, sticky = '', pady = 2, padx = 4)
 
         ## PR SINGLE LABELS
         self.pr_sin_header = customtkinter.CTkLabel(self.container,
-                                                    text = "PR Single:    ",
+                                                    text = "PR Single:",
                                                     text_color = "grey",
                                                     font = ("TkDefaultFont", 17))
 
@@ -226,13 +231,13 @@ class PlayerRowLabel():
                                                     text_color = "black",
                                                     font = ("TkDefaultFont", 19))
             
-        self.pr_sin_header.grid(row = 3, column = 0, sticky = 'W', pady = 2, padx = 4)
-        self.pr_sin_label.grid(row = 4, column = 0, sticky = 'W', pady = 2, padx = 4)
+        self.pr_sin_header.grid(row = 3, column = 0, sticky = '', pady = 2, padx = 4)
+        self.pr_sin_label.grid(row = 4, column = 0, sticky = '', pady = 2, padx = 4)
 
 
         ## WORLD RANK LABELS
         self.wr_header = customtkinter.CTkLabel(self.container,
-                                                    text = "World Ranking:    ",
+                                                    text = "World Ranking:",
                                                     text_color = "grey",
                                                     font = ("TkDefaultFont", 17),
                                                     width = 70)
@@ -278,22 +283,19 @@ class PlayerRowLabel():
         self.recent_results_header.grid(row = 1, column = 2, sticky = 'W', pady = 2, padx = 2)
         self.recent_results_label.grid(row = 2, column = 2, sticky = 'W', pady = 2, padx = 2)
 
-
-
-
-
         ## X BUTTON
         self.x_button = customtkinter.CTkButton(master = self.container, text = "X", text_color = "black", bg_color = "transparent", 
                                                 hover_color = "grey", command = self.remove_row, width = 20)
-        self.x_button.grid(row = 0, column = 5, sticky = 'E', pady = 5, padx = 5)
+        self.x_button.grid(row = 0, column = 2, sticky = 'E', pady = 5, padx = 5)
         self.remove_player_callback_func = remove_player_func
-
-        self.container.grid_columnconfigure(0, weight=1)  # left content
+        
+        ## CONFIGURE COLUMN WEIGHTS
+        self.container.grid_columnconfigure(0, weight=0)  # left content
         self.container.grid_columnconfigure(1, weight=1)
-        self.container.grid_columnconfigure(2, weight=1)
-        self.container.grid_columnconfigure(3, weight=1)
-        self.container.grid_columnconfigure(4, weight=1)
-        self.container.grid_columnconfigure(5, weight=0)  # X button column (fixed) 
+        self.container.grid_columnconfigure(2, weight=0)
+        #self.container.grid_columnconfigure(3, weight=1)
+        #self.container.grid_columnconfigure(4, weight=0)
+        #self.container.grid_columnconfigure(5, weight=0)  # X button column (fixed) 
 
     def remove_row(self):
         self.remove_player_callback_func(self.player)
@@ -352,8 +354,9 @@ class App(customtkinter.CTk):
 
         
         ## FRAME / COMPETITORS CONTAINER ##
-        self.players_frame = customtkinter.CTkScrollableFrame(self, width=700, height=600, fg_color = "#ffffff", border_color = "black", border_width = 2)
-        self.players_frame.place(relx=0.5, rely=0.65, anchor = customtkinter.CENTER)
+        self.players_frame = customtkinter.CTkScrollableFrame(self, width=900, height=600)
+        self.players_frame.grid_columnconfigure(0, weight = 0)
+        self.players_frame.place(relx=0.5, rely=0.60, anchor = customtkinter.CENTER)
         self.players_frame_header = customtkinter.CTkLabel(self, text = "Competitors", fg_color = "transparent", font = ("TkDefaultFont", 30))
         self.players_frame_header.place(relx = 0.1, rely = 0.25)
 
@@ -403,7 +406,6 @@ class App(customtkinter.CTk):
         self.wca_id_entry.delete(0, len(inputted_wca_id))
         
         new_row = PlayerRowLabel(self.players_frame,
-                                 3,
                                  self.players_row_offsety,
                                  self.remove_player,
                                  new_player)
