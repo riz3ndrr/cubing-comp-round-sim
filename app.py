@@ -83,12 +83,22 @@ class gennedPlayer(Player):
             self.player_data = self.response.json()
             self.name = self.player_data['name']
             self.country = self.player_data['country']
-            self.rank = self.player_data['rank']['averages'][EVENT_INDEX_MAP[event]]['rank']['world']
-            self.pr_avg = self.player_data['rank']['averages'][EVENT_INDEX_MAP[event]]['best'] / 100
-            self.pr_sin = self.player_data['rank']['singles'][EVENT_INDEX_MAP[event]]['best'] / 100
+            self.rank, self.pr_avg = self.findAvgStats()
+            self.pr_sin = self.findSinStats()
             self.avg, self.times = self.generateNewResults()
             #TODO MAKE THIS EFFICIENT
             self.mo50_recent = self.calculate_mean_of_50_recent_solves()
+    
+    def findAvgStats(self):
+        for event_info in self.player_data['rank']['averages']:
+            if self.event == event_info['eventId']:
+                return event_info['rank']['world'], event_info['best'] / 100
+    def findSinStats(self):
+        for event_info in self.player_data['rank']['singles']:
+            if self.event == event_info['eventId']:
+                return event_info['best'] / 100
+
+
 
     def __str__(self):
         return f"{self.name}, WCA ID: {self.wca_id}"
