@@ -182,9 +182,9 @@ EVENT_NAMES = [
 
 class PlayerRowLabel():
     ## TODO MAKE THIS EFFFICIENT
-    def __init__(self, root, y, remove_player_func, player):
-        self.container = customtkinter.CTkFrame(root, width=500, height=200, fg_color = "#ffffff", border_color = "grey", border_width = 1)
-        self.container.grid(row = y, column = 0, sticky = "", padx = 15, pady=15)
+    def __init__(self, root, x, y, remove_player_func, player):
+        self.container = customtkinter.CTkFrame(root, width=450, height=200, fg_color = "#ffffff", border_color = "grey", border_width = 1)
+        self.container.grid(row = y, column = x, sticky = "", padx = 5, pady=10)
         #self.container.grid_propagate(False)
         self.player = player
         self.player_wca_label = customtkinter.CTkLabel(self.container,
@@ -264,8 +264,8 @@ class PlayerRowLabel():
                                                     font = ("TkDefaultFont", 19),
                                                     width = 100)
      
-        self.country_header.grid(row = 3, column = 1, sticky = 'W', pady = 2, padx = 2)
-        self.country_label.grid(row = 4, column = 1, sticky = 'W', pady = 2, padx = 2)
+        self.country_header.grid(row = 3, column = 1, sticky = 'W', pady = 2, padx = 0)
+        self.country_label.grid(row = 4, column = 1, sticky = 'W', pady = 2, padx = 0)
    
         ## RECENT RESULTS LABELS
         self.recent_results_header = customtkinter.CTkLabel(self.container,
@@ -303,8 +303,8 @@ class PlayerRowLabel():
             widget.destroy()
         self.container.destroy()
 
-    def change_pos(self, new_y):
-        self.container.grid(row = new_y, column = 0, padx = 15, pady=15 ) 
+    def change_pos(self, new_x, new_y):
+        self.container.grid(row = new_y, column = new_x, padx = 5, pady=10) 
 
 class App(customtkinter.CTk):
     def __init__(self):
@@ -362,6 +362,7 @@ class App(customtkinter.CTk):
 
         self.players = {}
         self.players_row_offsety = 0
+        self.players_col_num = 0
         
 
     def event_dropdown_callback(self, choice):
@@ -371,13 +372,20 @@ class App(customtkinter.CTk):
     def remove_player(self, player):
         if player in self.players:
             self.players.pop(player)  
-        self.shift_player_rows()
+        self.shift_player_pos()
 
-    def shift_player_rows(self): 
-        for i, row in enumerate(self.players.values()):
-            row.change_pos(i)
-        self.players_row_offsety = len(self.players)
+    def shift_player_pos(self):
+        x = 0
+        y = 0 
 
+        for row in self.players.values():
+            row.change_pos(x, y)
+            x = (x + 1) % 2 
+            if (x == 0):
+                y += 1
+        
+        self.players_col_num = x
+        self.players_row_offsety = y 
     
     def playerAlreadyExists(self, wca_id):
         for opp in self.players.keys():
@@ -406,12 +414,15 @@ class App(customtkinter.CTk):
         self.wca_id_entry.delete(0, len(inputted_wca_id))
         
         new_row = PlayerRowLabel(self.players_frame,
+                                 self.players_col_num,
                                  self.players_row_offsety,
                                  self.remove_player,
                                  new_player)
 
         self.players[new_player] = new_row
-        self.players_row_offsety = len(self.players)
+        self.players_col_num = (self.players_col_num + 1) % 2
+        if self.players_col_num == 0:
+            self.players_row_offsety += 1
         print(len(self.players))
         print(new_player.times)
         print(new_player.avg)
