@@ -53,25 +53,7 @@ class userPlayer(Player):
         slowest = max(self.times)
         self.avg = (total - fastest - slowest) / (3)
 
-EVENT_INDEX_MAP = {
-    "222": 0,
-    "333": 1,
-    "444": 2,
-    "555": 3,
-    "666": 4,
-    "777": 5,
-    "333bf": 6,
-    "333fm": 7,
-    "333oh": 8,
-    "clock": 9,
-    "minx": 10,
-    "pyram": 11,
-    "skewb": 12,
-    "sq1": 13,
-    "444bf": 14,
-    "555bf": 15,
-    "333mbf": 16
-}
+
 
 class gennedPlayer(Player):
     def __init__(self, wca_id, event):
@@ -88,17 +70,18 @@ class gennedPlayer(Player):
             self.avg, self.times = self.generateNewResults()
             #TODO MAKE THIS EFFICIENT
             self.mo50_recent = self.calculate_mean_of_50_recent_solves()
+
     
     def findAvgStats(self):
         for event_info in self.player_data['rank']['averages']:
             if self.event == event_info['eventId']:
                 return event_info['rank']['world'], event_info['best'] / 100
+        return None, None
+
     def findSinStats(self):
         for event_info in self.player_data['rank']['singles']:
             if self.event == event_info['eventId']:
                 return event_info['best'] / 100
-
-
 
     def __str__(self):
         return f"{self.name}, WCA ID: {self.wca_id}"
@@ -298,14 +281,6 @@ class PlayerRowLabel():
         self.x_button.grid(row = 0, column = 2, sticky = 'E', pady = 5, padx = 5)
         self.remove_player_callback_func = remove_player_func
         
-        ## CONFIGURE COLUMN WEIGHTS
-        self.container.grid_columnconfigure(0, weight=0)  # left content
-        self.container.grid_columnconfigure(1, weight=1)
-        self.container.grid_columnconfigure(2, weight=0)
-        #self.container.grid_columnconfigure(3, weight=1)
-        #self.container.grid_columnconfigure(4, weight=0)
-        #self.container.grid_columnconfigure(5, weight=0)  # X button column (fixed) 
-
     def remove_row(self):
         self.remove_player_callback_func(self.player)
         for widget in self.container.winfo_children():
@@ -315,47 +290,136 @@ class PlayerRowLabel():
     def change_pos(self, new_x, new_y):
         self.container.grid(row = new_y, column = new_x, padx = 5, pady=10) 
 
+
+class PlayerGameRow():
+    def __init__(self, root, x, y, player):
+        self.player = player
+        self.frame = customtkinter.CTkFrame(master = root, width = 400, height = 100, fg_color = "white")
+        self.frame.grid(row = y, column = x, sticky = "", padx = 5, pady=10)
+        self.player_name_label = customtkinter.CTkLabel(self.frame, text = player.name)
+        self.player_name_label.grid(row = 0, column = 0, sticky = "", padx = 10)
+        
+        self.player_time_label_0 = customtkinter.CTkLabel(self.frame, text = "#####")
+        self.player_time_label_1 = customtkinter.CTkLabel(self.frame, text = "#####")
+        self.player_time_label_2 = customtkinter.CTkLabel(self.frame, text = "#####")
+        self.player_time_label_3 = customtkinter.CTkLabel(self.frame, text = "#####")
+        self.player_time_label_4 = customtkinter.CTkLabel(self.frame, text = "#####")
+
+        self.player_time_labels = [self.player_time_label_0,
+                                   self.player_time_label_1,
+                                   self.player_time_label_2,
+                                   self.player_time_label_3,
+                                   self.player_time_label_4]
+        for col_num, time_label in enumerate(self.player_time_labels):
+            time_label.grid(row = 0, column = col_num + 1, sticky = "", padx = 10)
+
+        #self.frame.grid_columnconfigure(0, weight = 0)
+
+
+    def displayNextResult(self, solve_num):
+        label_to_configure = self.player_time_labels[solve_num]
+    
+        time_to_display = self.player.times[solve_num]
+        if time_to_display == DNF:
+            label_to_configure.configure(text = "DNF")
+        else:
+            label_to_configure.configure(text = f"{time_to_display:.2f}")
+
+
+
+class GameFrame():
+    def __init__(self, root, players):
+        self.frame = customtkinter.CTkFrame(master = root, width = 1000, height = 1000, fg_color = "white")
+        self.label = customtkinter.CTkLabel(self.frame, text = "WADSHASDHSAJD")
+        self.label.place(relx = 0.5, rely = 0.1, anchor = customtkinter.CENTER)
+        self.solve_num = 0
+        #print(self.players, "AAA")
+
+        ## DISPLAY PLAYER STATS 
+        self.players_container = customtkinter.CTkFrame(master = self.frame, width = 800, height = 800, fg_color = "#f0f0f0")
+        self.players_container.place(relx = 0.5, rely = 0.6, anchor = customtkinter.CENTER)
+
+        self.button = customtkinter.CTkButton(master = self.frame, text = "proceed to next solve", command = self.showNextTime)
+        self.button.place(relx = 0.8, rely = 0.8, anchor = customtkinter.CENTER)
+        
+        self.players = {}
+        
+        for row_num, player in enumerate(players):
+            self.players[player] = PlayerGameRow(self.players_container, 0, row_num, player)
+    
+    def showNextTime(self):
+        for player_game_row in self.players.values():
+            player_game_row.displayNextResult(self.solve_num)
+        self.solve_num += 1
+
+
+
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
-        self.geometry("500x1000") 
+        self.geometry("1000x1000")
+        self.startFrame = StartFrame(self, self.switchFrame)
+        self.gameFrame = None 
+        self.players = None
+        self.startFrame.frame.pack(expand = True)
+        #self.startFrame.frame.pack_forget()
+        #self.gameFrame.frame.pack(expand = True)
+        
+        
+        self.frames = [self.gameFrame, self.startFrame]
 
-        self.app_label = customtkinter.CTkLabel(self, 
+    def switchFrame(self):
+        self.startFrame.frame.pack_forget()
+        self.players = self.startFrame.getPlayers()
+
+        self.gameFrame = GameFrame(self, self.players)
+        self.gameFrame.frame.pack(expand = True)
+        print(self.players)
+        for p in self.players:
+            pprint(p.times)
+    
+
+
+class StartFrame():
+    def __init__(self, root, swtich_frame_func):
+        self.frame = customtkinter.CTkFrame(master = root, width = 1000, height = 1000, fg_color="white")
+        #self.frame.pack(expand = True)
+        self.app_label = customtkinter.CTkLabel(self.frame, 
                                         text = "WCA Competition Round Simulator",
                                         fg_color = "transparent",
                                         font = ("TkDefaultFont", 35))
         self.app_label.place(relx = 0.5, rely = 0.05, anchor=customtkinter.CENTER)
 
         # ADD COMPETITOR
-        self.subtitle1 = customtkinter.CTkLabel(self,
+        self.subtitle1 = customtkinter.CTkLabel(self.frame,
                                         text = "Add Competitor",
                                         fg_color = "transparent",
                                         font = ("TkDefaultFont", 25))
         self.subtitle1.place(relx = 0.2, rely = 0.185, anchor = customtkinter.CENTER)
 
 
-        self.wca_id_entry = customtkinter.CTkEntry(self, width = 225, placeholder_text="Enter your opponent(s)' WCA ID")
+        self.wca_id_entry = customtkinter.CTkEntry(self.frame, width = 225, placeholder_text="Enter your opponent(s)' WCA ID")
         self.wca_id_entry.place(relx = 0.25, rely = 0.225, anchor = customtkinter.CENTER)
 
 
-        self.input_wca_id_button = customtkinter.CTkButton(master=self, text="Enter", command=self.input_wca_id_button_function)
+        self.input_wca_id_button = customtkinter.CTkButton(master=self.frame, text="Enter", command=self.input_wca_id_button_function)
         self.input_wca_id_button.place(relx = 0.45, rely = 0.225, anchor=customtkinter.CENTER)
 
-        self.wca_id_entry_feedback_label = customtkinter.CTkLabel(self, text = "WCA ID invalid",
+        self.wca_id_entry_feedback_label = customtkinter.CTkLabel(self.frame, text = "WCA ID invalid",
                                                             text_color = "red",
                                                             font = ("TkDefaultFont", 20))
         self.wca_id_entry_feedback_label.place_forget()
 
         
         ## CONFIGURE EVENT
-        self.event_label = customtkinter.CTkLabel(self, 
+        self.event_label = customtkinter.CTkLabel(self.frame, 
                                         text = "Event: ",
                                         fg_color = "transparent",
                                         font = ("TkDefaultFont", 25))
         self.event_label.place(relx = 0.6, rely = 0.185, anchor=customtkinter.CENTER)
 
         #self.event = customtkinter.StringVar(value=list(EVENT_CODES.keys())[0])
-        self.event_dropdown = customtkinter.CTkOptionMenu(self, values=list(EVENT_CODES.keys()),
+        self.event_dropdown = customtkinter.CTkOptionMenu(self.frame, values=list(EVENT_CODES.keys()),
                                          command=self.event_dropdown_callback,
                                          )
         
@@ -364,16 +428,24 @@ class App(customtkinter.CTk):
 
         
         ## FRAME / COMPETITORS CONTAINER ##
-        self.players_frame = customtkinter.CTkScrollableFrame(self, width=900, height=600)
+        self.players_frame = customtkinter.CTkScrollableFrame(self.frame, width=900, height=600)
         self.players_frame.grid_columnconfigure(0, weight = 0)
         self.players_frame.place(relx=0.5, rely=0.60, anchor = customtkinter.CENTER)
-        self.players_frame_header = customtkinter.CTkLabel(self, text = "Competitors", fg_color = "transparent", font = ("TkDefaultFont", 30))
+        self.players_frame_header = customtkinter.CTkLabel(self.frame, text = "Competitors", fg_color = "transparent", font = ("TkDefaultFont", 30))
         self.players_frame_header.place(relx = 0.1, rely = 0.25)
 
         self.players = {}
         self.players_row_offsety = 0
         self.players_col_num = 0
+
+        self.start_button = customtkinter.CTkButton(master = self.frame, text = "Start", command = swtich_frame_func)
+        self.start_button.place(relx = 0.8, rely = 0.95)
+
+    def startRound(self):
+        print("STARTED")
         
+    def getPlayers(self):
+        return list(self.players.keys())
 
     def event_dropdown_callback(self, choice):
         if self.event != choice:
@@ -386,8 +458,6 @@ class App(customtkinter.CTk):
                 widget.destroy()
             player_row.container.destroy() 
         self.players.clear()
-
-
             
     def remove_player(self, player):
         if player in self.players:
@@ -416,16 +486,13 @@ class App(customtkinter.CTk):
 
     def input_wca_id_button_function(self):
         inputted_wca_id = self.wca_id_entry.get()
-        
-
-        self.wca_id_entry_feedback_label.place(relx = 0.675, rely = 0.225, anchor = customtkinter.CENTER)
+        self.wca_id_entry_feedback_label.place(relx = 0.8, rely = 0.225, anchor = customtkinter.CENTER)
 
         if self.playerAlreadyExists(inputted_wca_id):
             self.wca_id_entry_feedback_label.configure(text = "Player Already Exists", text_color = "red")
             return    
 
         new_player = gennedPlayer(inputted_wca_id, EVENT_CODES[self.event_dropdown.get()])
-        pprint(new_player.rank)
         if new_player.validPlayer() is False:
             self.wca_id_entry_feedback_label.configure(text = "WCA ID invalid", text_color = "red")
             return
@@ -443,6 +510,7 @@ class App(customtkinter.CTk):
         self.players_col_num = (self.players_col_num + 1) % 2
         if self.players_col_num == 0:
             self.players_row_offsety += 1
+
         print(len(self.players))
         print(new_player.times)
         print(new_player.avg)
