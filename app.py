@@ -70,7 +70,18 @@ class gennedPlayer(Player):
             self.avg, self.times = self.generateNewResults()
             #TODO MAKE THIS EFFICIENT
             self.mo50_recent = self.calculate_mean_of_50_recent_solves()
+            self.bpa, self.wpa = self.findBPAandWPA()
 
+
+    def findBPAandWPA(self):
+        times = self.times[:4]
+
+        bpa = (sum(times) - max(times)) / 3
+        if DNF in times:
+            wpa = DNF
+        else:
+            wpa = (sum(times) - min(times)) / 3
+        return bpa, wpa
     
     def findAvgStats(self):
         for event_info in self.player_data['rank']['averages']:
@@ -305,6 +316,10 @@ class PlayerGameRow():
         self.player_time_label_3 = customtkinter.CTkLabel(self.frame, text = "#####")
         self.player_time_label_4 = customtkinter.CTkLabel(self.frame, text = "#####")
 
+        self.player_bpa_label = customtkinter.CTkLabel(self.frame, text = f"BPA: {self.player.bpa:.2f}")
+        wpa = "DNF" if self.player.wpa == DNF else f"{self.player.wpa:.2f}"
+        self.player_wpa_label = customtkinter.CTkLabel(self.frame, text = f"WPA: {wpa}")
+
         self.player_time_labels = [self.player_time_label_0,
                                    self.player_time_label_1,
                                    self.player_time_label_2,
@@ -324,6 +339,11 @@ class PlayerGameRow():
             label_to_configure.configure(text = "DNF")
         else:
             label_to_configure.configure(text = f"{time_to_display:.2f}")
+
+        if (solve_num == 3):
+            self.player_bpa_label.grid(row = 0, column = 6, sticky = "", padx = 10)
+            self.player_wpa_label.grid(row = 0, column = 7, sticky = "", padx = 10)
+
 
 
 
