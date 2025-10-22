@@ -43,15 +43,15 @@ class Player:
             string += f"{self.times[solve_num - 1]:.2f}"
         print(string)
 
-    def findBPAandWPA(self):
+    def calcBPAandWPA(self):
         times = self.times[:4]
 
-        bpa = (sum(times) - max(times)) / 3
+        self.bpa = (sum(times) - max(times)) / 3
         if DNF in times:
-            wpa = DNF
+            self.wpa = DNF
         else:
-            wpa = (sum(times) - min(times)) / 3
-        return bpa, wpa
+            self.wpa = (sum(times) - min(times)) / 3
+        #return bpa, wpa
 
 class userPlayer(Player):
     def __init__(self, name):
@@ -95,7 +95,7 @@ class gennedPlayer(Player):
             self.avg, self.times = self.generateNewResults()
             #TODO MAKE THIS EFFICIENT
             self.mo50_recent = self.calculate_mean_of_50_recent_solves()
-            self.bpa, self.wpa = self.findBPAandWPA()
+            self.calcBPAandWPA()
 
 
     
@@ -333,8 +333,7 @@ class PlayerGameRow():
         self.player_time_label_3 = customtkinter.CTkLabel(root, text = "#####")
         self.player_time_label_4 = customtkinter.CTkLabel(root, text = "#####")
 
-        wpa = "DNF" if self.player.wpa == DNF else f"{self.player.wpa:.2f}"
-        self.player_avg_label = customtkinter.CTkLabel(root, text = f"{self.player.bpa:.2f}/{wpa}", text_color = "grey")
+        self.player_avg_label = customtkinter.CTkLabel(root, text = "N/A")
 
         self.player_time_labels = [self.player_time_label_0,
                                    self.player_time_label_1,
@@ -349,8 +348,8 @@ class PlayerGameRow():
         self.player_name_label.grid(row = new_row_num, column = 1, sticky = "", padx = 10)
         for col_num, time_label in enumerate(self.player_time_labels):
             time_label.grid(row = new_row_num, column = col_num + 2, sticky = "", padx = 10)
-        #if solve_num >= 3:
-        self.player_avg_label.grid(row = new_row_num, column = 7, sticky = "", padx = 10)
+        if solve_num >= 3:
+            self.player_avg_label.grid(row = new_row_num, column = 7, sticky = "", padx = 10)
         
     
     def displayNextResult(self, solve_num):
@@ -363,7 +362,10 @@ class PlayerGameRow():
             label_to_configure.configure(text = f"{time_to_display:.2f}")
 
         if (solve_num == 3):
-            self.player_avg_label.grid(row = self.y, column = 7, sticky = "", padx = 10)
+            #self.player_avg_label.grid(row = self.y, column = 7, sticky = "", padx = 10)
+            wpa = "DNF" if self.player.wpa == DNF else f"{self.player.wpa:.2f}"
+            self.player_avg_label.configure(text = f"{self.player.bpa:.2f}/{wpa}", text_color = "grey")
+
         elif (solve_num == 4):
             self.player_avg_label.configure(text = f"{self.player.avg:.2f}", text_color = "black")
 
@@ -411,7 +413,7 @@ class GameFrame():
         pos_label = customtkinter.CTkLabel(master = self.players_container, text = f"{len(cpu_players) + 1}")
         pos_label.grid(row = len(cpu_players) + 1, column = 0)
 
-        self.user = userPlayer("MEE")
+        self.user = userPlayer("Player")
         self.players[self.user] = PlayerGameRow(self.players_container, len(cpu_players) + 1, len(cpu_players) + 1 , self.user)
 
         ## DISPLAY SCRAMBLE 
@@ -432,6 +434,8 @@ class GameFrame():
         self.user.addTime(time) 
         if self.solve_num == 4:
             self.user.generateAvg()
+        elif self.solve_num == 3:
+            self.user.calcBPAandWPA()
         self.showNextTime()
         
     def generateScramble(self):
@@ -451,7 +455,11 @@ class GameFrame():
 
     def rerankPlayers(self):
         #pprint(self.players.items())
-        self.players = dict(sorted(self.players.items(), key = lambda player_info : min(player_info[0].times[:(self.solve_num + 1)])))
+        if self.solve_num < 4:
+            self.players = dict(sorted(self.players.items(), key = lambda player_info : min(player_info[0].times[:(self.solve_num + 1)])))
+        else:
+            self.players = dict(sorted(self.players.items(), key = lambda player_info : player_info[0].avg))
+
         #pprint(self.players.items())
         for new_row_num, player_row in enumerate(self.players.values()):
             player_row.repositionLabels(new_row_num + 1, self.solve_num)
