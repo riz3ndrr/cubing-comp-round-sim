@@ -4,6 +4,20 @@ from numpy import random
 
 from pprint import pprint
 
+from cubescrambler import (
+    scrambler222,
+    scrambler333,
+    scrambler444,
+    scrambler555,
+    scrambler666,
+    scrambler777,
+    pyraminxScrambler,
+    megaminxScrambler,
+    squareOneScrambler,
+    skewbScrambler,
+    clockScrambler
+)
+
 customtkinter.set_appearance_mode("System")  # Modes: system (default), light, dark
 customtkinter.set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
 
@@ -29,14 +43,25 @@ class Player:
             string += f"{self.times[solve_num - 1]:.2f}"
         print(string)
 
+    def findBPAandWPA(self):
+        times = self.times[:4]
+
+        bpa = (sum(times) - max(times)) / 3
+        if DNF in times:
+            wpa = DNF
+        else:
+            wpa = (sum(times) - min(times)) / 3
+        return bpa, wpa
+
 class userPlayer(Player):
     def __init__(self, name):
         self.name = name
         self.avg = None
         self.times = []
+        self.wpa = 0 
+        self.bpa = 0
 
-    def addTime(self):
-        new_time = float(input("What did you get on this scramble? "))
+    def addTime(self, new_time):
         self.times.append(new_time)
     
     def generateAvg(self):
@@ -73,15 +98,7 @@ class gennedPlayer(Player):
             self.bpa, self.wpa = self.findBPAandWPA()
 
 
-    def findBPAandWPA(self):
-        times = self.times[:4]
-
-        bpa = (sum(times) - max(times)) / 3
-        if DNF in times:
-            wpa = DNF
-        else:
-            wpa = (sum(times) - min(times)) / 3
-        return bpa, wpa
+    
     
     def findAvgStats(self):
         for event_info in self.player_data['rank']['averages']:
@@ -308,7 +325,7 @@ class PlayerGameRow():
         self.y = y
         self.frame = root
         self.player_name_label = customtkinter.CTkLabel(root, text = player.name)
-        self.player_name_label.grid(row = self.y, column = 0, sticky = "", padx = 10)
+        self.player_name_label.grid(row = self.y, column = 1, sticky = "", padx = 10)
         
         self.player_time_label_0 = customtkinter.CTkLabel(root, text = "#####")
         self.player_time_label_1 = customtkinter.CTkLabel(root, text = "#####")
@@ -325,14 +342,15 @@ class PlayerGameRow():
                                    self.player_time_label_3,
                                    self.player_time_label_4]
         for col_num, time_label in enumerate(self.player_time_labels):
-            time_label.grid(row = self.y, column = col_num + 1, sticky = "", padx = 10)
+            time_label.grid(row = self.y, column = col_num + 2, sticky = "", padx = 10)
 
         #self.frame.grid_columnconfigure(0, weight = 0)
-    def repositionLabels(self, new_row_num):
-        self.player_name_label.configure(row = new_row_num)
-        for time_label in self.player_time_labels:
-            time_label.configure(row = new_row_num)
-        self.player_avg_label.configure(row = new_row_num)
+    def repositionLabels(self, new_row_num, solve_num):
+        self.player_name_label.grid(row = new_row_num, column = 1, sticky = "", padx = 10)
+        for col_num, time_label in enumerate(self.player_time_labels):
+            time_label.grid(row = new_row_num, column = col_num + 2, sticky = "", padx = 10)
+        #if solve_num >= 3:
+        self.player_avg_label.grid(row = new_row_num, column = 7, sticky = "", padx = 10)
         
     
     def displayNextResult(self, solve_num):
@@ -345,7 +363,7 @@ class PlayerGameRow():
             label_to_configure.configure(text = f"{time_to_display:.2f}")
 
         if (solve_num == 3):
-            self.player_avg_label.grid(row = self.y, column = 6, sticky = "", padx = 10)
+            self.player_avg_label.grid(row = self.y, column = 7, sticky = "", padx = 10)
         elif (solve_num == 4):
             self.player_avg_label.configure(text = f"{self.player.avg:.2f}", text_color = "black")
 
@@ -353,12 +371,12 @@ class PlayerGameRow():
 
 
 class GameFrame():
-    def __init__(self, root, players):
+    def __init__(self, root, cpu_players):
         self.frame = customtkinter.CTkFrame(master = root, width = 1000, height = 1000, fg_color = "white")
         self.label = customtkinter.CTkLabel(self.frame, text = "WADSHASDHSAJD")
         self.label.place(relx = 0.5, rely = 0.1, anchor = customtkinter.CENTER)
         self.solve_num = 0
-        #print(self.players, "AAA")
+        #print(self.players, "AAA") 
 
         ## DISPLAY PLAYER STATS 
         self.players_container = customtkinter.CTkFrame(master = self.frame, width = 800, height = 800, fg_color = "#f0f0f0")
@@ -371,23 +389,73 @@ class GameFrame():
         
 
         self.player_name_header = customtkinter.CTkLabel(master = self.players_container, text = "Player:")
-        self.player_name_header.grid(row = 0, column = 0, sticky = "", padx = 10)
+        self.player_name_header.grid(row = 0, column = 1, sticky = "", padx = 10)
 
+        self.player_rank_header = customtkinter.CTkLabel(master = self.players_container, text = "Rank:")
+        self.player_rank_header.grid(row = 0, column = 0, sticky = "", padx = 10)
+        
+        ## SOLVE COLUMNS
         for col_num in range(1, 6):
             self.time_label = customtkinter.CTkLabel(master = self.players_container, text = f"Solve {col_num}:")
-            self.time_label.grid(row = 0, column = col_num, sticky = "", padx = 10)
+            self.time_label.grid(row = 0, column = col_num + 1, sticky = "", padx = 10)
 
         self.avg_header = customtkinter.CTkLabel(master = self.players_container, text = "Average:")
-        self.avg_header.grid(row = 0, column = 6, sticky = "", padx = 10)
+        self.avg_header.grid(row = 0, column = 7, sticky = "", padx = 10)
 
          
-        for row_num, player in enumerate(players):
+        for row_num, player in enumerate(cpu_players):
+            pos_label = customtkinter.CTkLabel(master = self.players_container, text = f"{row_num + 1}")
+            pos_label.grid(row = row_num + 1, column = 0)
             self.players[player] = PlayerGameRow(self.players_container, row_num + 1, row_num + 1, player)
+        ## GENERATE USER ROW
+        pos_label = customtkinter.CTkLabel(master = self.players_container, text = f"{len(cpu_players) + 1}")
+        pos_label.grid(row = len(cpu_players) + 1, column = 0)
+
+        self.user = userPlayer("MEE")
+        self.players[self.user] = PlayerGameRow(self.players_container, len(cpu_players) + 1, len(cpu_players) + 1 , self.user)
+
+        ## DISPLAY SCRAMBLE 
+        self.scramble_label = customtkinter.CTkLabel(master = self.frame, text = "")
+        self.generateScramble()
+        self.scramble_label.place(relx = 0.5, rely = 0.2, anchor = customtkinter.CENTER)
+
+
+        # GET USER INPUT 
+        self.time_input_label = customtkinter.CTkEntry(master = self.frame, placeholder_text = "E.G., 6.53")
+        self.time_input_label.place(relx = 0.5, rely = 0.8, anchor = customtkinter.CENTER)
+
+        self.enter_time_button = customtkinter.CTkButton(master = self.frame, text = "Enter Time", command = self.processUserTimeInput)
+        self.enter_time_button.place(relx = 0.5, rely = 0.9, anchor = customtkinter.CENTER)
+
+    def processUserTimeInput(self):
+        time = float(self.time_input_label.get())
+        self.user.addTime(time) 
+        if self.solve_num == 4:
+            self.user.generateAvg()
+        self.showNextTime()
+        
+    def generateScramble(self):
+        self.scramble_label.configure(text = "Generating scramble...")
+        self.scramble_label.after(100, lambda : self.scramble_label.configure(text = scrambler333.get_WCA_scramble()))
+
     
     def showNextTime(self):
+              
+        self.rerankPlayers()
         for player_game_row in self.players.values():
             player_game_row.displayNextResult(self.solve_num)
         self.solve_num += 1
+
+        if self.solve_num <= 4:
+            self.generateScramble()        
+
+    def rerankPlayers(self):
+        #pprint(self.players.items())
+        self.players = dict(sorted(self.players.items(), key = lambda player_info : min(player_info[0].times[:(self.solve_num + 1)])))
+        #pprint(self.players.items())
+        for new_row_num, player_row in enumerate(self.players.values()):
+            player_row.repositionLabels(new_row_num + 1, self.solve_num)
+        
 
 
 
@@ -407,8 +475,8 @@ class App(customtkinter.CTk):
 
     def switchFrame(self):
         self.startFrame.frame.pack_forget()
-        self.players = self.startFrame.getPlayers()
-
+        self.players = self.startFrame.getPlayers() 
+        
         self.gameFrame = GameFrame(self, self.players)
         self.gameFrame.frame.pack(expand = True)
         print(self.players)
