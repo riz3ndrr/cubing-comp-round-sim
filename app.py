@@ -326,16 +326,16 @@ class PlayerGameRow():
         self.player = player
         self.y = y
         self.frame = root
-        self.player_name_label = customtkinter.CTkLabel(root, text = player.name)
-        self.player_name_label.grid(row = self.y, column = 1, sticky = "", padx = 10)
+        self.player_name_label = customtkinter.CTkLabel(root, text = player.name, font = ("TkDefaultFont", 20))
+        self.player_name_label.grid(row = self.y, column = 1, sticky = "", padx = 10, pady = 10)
         
-        self.player_time_label_0 = customtkinter.CTkLabel(root, text = "#####")
-        self.player_time_label_1 = customtkinter.CTkLabel(root, text = "#####")
-        self.player_time_label_2 = customtkinter.CTkLabel(root, text = "#####")
-        self.player_time_label_3 = customtkinter.CTkLabel(root, text = "#####")
-        self.player_time_label_4 = customtkinter.CTkLabel(root, text = "#####")
+        self.player_time_label_0 = customtkinter.CTkLabel(root, text = "#####", font = ("TkDefaultFont", 20))
+        self.player_time_label_1 = customtkinter.CTkLabel(root, text = "#####", font = ("TkDefaultFont", 20))
+        self.player_time_label_2 = customtkinter.CTkLabel(root, text = "#####", font = ("TkDefaultFont", 20))
+        self.player_time_label_3 = customtkinter.CTkLabel(root, text = "#####", font = ("TkDefaultFont", 20))
+        self.player_time_label_4 = customtkinter.CTkLabel(root, text = "#####", font = ("TkDefaultFont", 20))
 
-        self.player_avg_label = customtkinter.CTkLabel(root, text = "N/A")
+        self.player_avg_label = customtkinter.CTkLabel(root, text = "N/A", font = ("TkDefaultFont", 20))
 
         self.player_time_labels = [self.player_time_label_0,
                                    self.player_time_label_1,
@@ -381,44 +381,44 @@ class PlayerGameRow():
 
 
 class GameFrame():
-    def __init__(self, root, cpu_players):
+    def __init__(self, root, cpu_players, switchFrameFunc):
         self.frame = customtkinter.CTkFrame(master = root, width = 1000, height = 1000, fg_color = "white")
         self.label = customtkinter.CTkLabel(self.frame, text = "WADSHASDHSAJD")
         self.label.place(relx = 0.5, rely = 0.1, anchor = customtkinter.CENTER)
         self.solve_num = 0
         #print(self.players, "AAA") 
 
-        ## DISPLAY PLAYER STATS 
-        self.players_container = customtkinter.CTkFrame(master = self.frame, width = 800, height = 800, fg_color = "#f0f0f0")
-        self.players_container.place(relx = 0.5, rely = 0.6, anchor = customtkinter.CENTER)
+        ## PLAYER CONTAINER
+        self.players_container = customtkinter.CTkScrollableFrame(master = self.frame, width = 800, height = 600, fg_color = "#f0f0f0")
+        self.players_container.place(relx = 0.5, rely = 0.7, anchor = customtkinter.CENTER)
 
-        self.rematch_button = customtkinter.CTkButton(master = self.frame, text = "rematch", command = self.resetRound)
-        self.rematch_button.place(relx = 0.8, rely = 0.8, anchor = customtkinter.CENTER)
+        ## DISPLAY PLAYER STATS 
         
         self.players = {}
         
 
-        self.player_name_header = customtkinter.CTkLabel(master = self.players_container, text = "Player:")
+        self.player_name_header = customtkinter.CTkLabel(master = self.players_container, text = "Player:", font = ("TkDefaultFont", 20))
         self.player_name_header.grid(row = 0, column = 1, sticky = "", padx = 10)
 
-        self.player_rank_header = customtkinter.CTkLabel(master = self.players_container, text = "Rank:")
+        self.player_rank_header = customtkinter.CTkLabel(master = self.players_container, text = "Rank:", font = ("TkDefaultFont", 20))
         self.player_rank_header.grid(row = 0, column = 0, sticky = "", padx = 10)
         
         ## SOLVE COLUMNS
         for col_num in range(1, 6):
-            self.time_label = customtkinter.CTkLabel(master = self.players_container, text = f"Solve {col_num}:")
+            self.time_label = customtkinter.CTkLabel(master = self.players_container, text = f"Solve {col_num}:", font = ("TkDefaultFont", 20))
             self.time_label.grid(row = 0, column = col_num + 1, sticky = "", padx = 10)
 
-        self.avg_header = customtkinter.CTkLabel(master = self.players_container, text = "Average:")
+        self.avg_header = customtkinter.CTkLabel(master = self.players_container, text = "Average:", font = ("TkDefaultFont", 20))
         self.avg_header.grid(row = 0, column = 7, sticky = "", padx = 10)
 
          
         for row_num, player in enumerate(cpu_players):
-            pos_label = customtkinter.CTkLabel(master = self.players_container, text = f"{row_num + 1}")
+            pos_label = customtkinter.CTkLabel(master = self.players_container, text = f"{row_num + 1}", font = ("TkDefaultFont", 20))
             pos_label.grid(row = row_num + 1, column = 0)
             self.players[player] = PlayerGameRow(self.players_container, row_num + 1, row_num + 1, player)
+
         ## GENERATE USER ROW
-        pos_label = customtkinter.CTkLabel(master = self.players_container, text = f"{len(cpu_players) + 1}")
+        pos_label = customtkinter.CTkLabel(master = self.players_container, text = f"{len(cpu_players) + 1}", font = ("TkDefaultFont", 20))
         pos_label.grid(row = len(cpu_players) + 1, column = 0)
 
         self.user = userPlayer("Player")
@@ -431,17 +431,30 @@ class GameFrame():
         self.scramble_label.place(relx = 0.5, rely = 0.2, anchor = customtkinter.CENTER)
 
 
-        # GET USER INPUT 
-        self.time_input_label = customtkinter.CTkEntry(master = self.frame, placeholder_text = "E.G., 6.53")
-        self.time_input_label.place(relx = 0.5, rely = 0.8, anchor = customtkinter.CENTER)
+        # GET USER INPUT
+        
+        
+        user_input_y = 0.3
+        self.time_input_label = customtkinter.CTkEntry(master = self.frame, placeholder_text = "E.G., 6.53", width = 400)
+        self.time_input_label.place(relx = 0.4, rely = user_input_y, anchor = customtkinter.CENTER)
 
-        self.enter_time_button = customtkinter.CTkButton(master = self.frame, text = "Enter Time", command = self.processUserTimeInput)
-        self.enter_time_button.place(relx = 0.5, rely = 0.9, anchor = customtkinter.CENTER)
+        self.enter_time_button = customtkinter.CTkButton(master = self.frame, text = "Enter Time", command = self.processUserTimeInput, height = 30)
+        self.enter_time_button.place(relx = 0.7, rely = user_input_y, anchor = customtkinter.CENTER)
 
+        self.rematch_button = customtkinter.CTkButton(master = self.frame, text = "Rematch", command = self.resetRound, height = 30)
+        self.rematch_button.place(relx = 0.4, rely = user_input_y + 0.05, anchor = customtkinter.CENTER)
+
+            ## SWITCH FRAMES 
+        self.switch_frame_button = customtkinter.CTkButton(master = self.frame, text = "Change Competitors", command = switchFrameFunc, height = 30)
+        self.switch_frame_button.place(relx = 0.6, rely = user_input_y + 0.05, anchor = customtkinter.CENTER)
 
         # USER FEEDBACK 
-        self.error_label = customtkinter.CTkLabel(master = self.frame, text = "Please correctly input a time", text_color = "red",
-                                                   font = ("TkDefaultFont", 30))
+        self.error_label = customtkinter.CTkLabel(master = self.frame, text = "Please correctly input a time", text_color = "red")
+        #root.bind('<Key>', self.enterUserTime)
+
+
+
+
     def tester(self):
         pprint(self.scramble_list)
 
@@ -459,6 +472,7 @@ class GameFrame():
 
 
     def processUserTimeInput(self):
+        print("WE HERE")
         try:
             time = float(self.time_input_label.get())
             self.user.addTime(time) 
@@ -489,7 +503,7 @@ class GameFrame():
 
             self.scramble_label.after(100, generateRest)
 
-        self.scramble_label.after(100, showFirstScramble)
+        self.scramble_label.after(500, showFirstScramble)
         pprint(self.scramble_list)
         
     def showNextTime(self):
@@ -512,6 +526,7 @@ class GameFrame():
         #pprint(self.players.items())
         for new_row_num, player_row in enumerate(self.players.values()):
             player_row.repositionLabels(new_row_num + 1, self.solve_num)
+
         
 
 
@@ -520,27 +535,38 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         self.geometry("1000x1000")
+
         self.startFrame = StartFrame(self, self.switchFrame)
         self.gameFrame = None 
+
         self.players = None
         self.startFrame.frame.pack(expand = True)
-        #self.startFrame.frame.pack_forget()
-        #self.gameFrame.frame.pack(expand = True)
-        
-        
+        self.currFrame = self.startFrame
         self.frames = [self.gameFrame, self.startFrame]
+        self.bind('<Key>', self.helper_func)
+
 
     def switchFrame(self):
-        self.startFrame.frame.pack_forget()
-        self.players = self.startFrame.getPlayers() 
-        
-        self.gameFrame = GameFrame(self, self.players)
-        self.gameFrame.frame.pack(expand = True)
-        print(self.players)
-        for p in self.players:
-            pprint(p.times)
-    
-
+        if isinstance(self.currFrame, StartFrame):
+            self.startFrame.frame.pack_forget()
+            self.players = self.startFrame.getPlayers() 
+            self.gameFrame = GameFrame(self, self.players, self.switchFrame)
+            self.gameFrame.frame.pack(expand = True)
+            self.currFrame = self.gameFrame
+        elif isinstance(self.currFrame, GameFrame):
+            #self.bind('<Key>', self.startFrame.recvUserKeyInput)
+            self.gameFrame.frame.pack_forget()
+            self.startFrame.frame.pack(expand = True)
+            self.currFrame = self.startFrame
+    def helper_func(self, key):
+        ENTER_KEYCODE = 36
+        print(key)
+            ## TODO, DONT HARDCODE THE SPECIFIC FUNCTION HERE
+        if key.keycode == ENTER_KEYCODE:
+            if isinstance(self.currFrame, StartFrame):
+                self.currFrame.input_wca_id_button_function()
+            elif isinstance(self.currFrame, GameFrame):
+                self.currFrame.processUserTimeInput()
 
 class StartFrame():
     def __init__(self, root, swtich_frame_func):
@@ -603,6 +629,7 @@ class StartFrame():
         self.start_button = customtkinter.CTkButton(master = self.frame, text = "Start", command = swtich_frame_func)
         self.start_button.place(relx = 0.8, rely = 0.95)
 
+        #root.bind('<Key>', self.recvUserKeyInput)
     def startRound(self):
         print("STARTED")
         
