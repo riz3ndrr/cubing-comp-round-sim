@@ -70,13 +70,14 @@ class userPlayer(Player):
             if num == DNF:
                 num_dnf += 1
 
-        if num_dnf > 1:
-            self.avg = DNF_AVG
-
         total = sum(self.times)
         fastest = min(self.times)
         slowest = max(self.times)
-        self.avg = (total - fastest - slowest) / (3)
+
+        if num_dnf > 1:
+            self.avg = DNF_AVG
+        else:
+            self.avg = (total - fastest - slowest) / (3)
 
 
 
@@ -170,13 +171,14 @@ class gennedPlayer(Player):
                 num_dnf += 1
             times.append(new_time)
         
-        if num_dnf > 1:
-            self.avg = DNF_AVG
-
         total = sum(times)
         fastest = min(times)
         slowest = max(times)
-        avg = (total - fastest - slowest) / (3)
+
+        if num_dnf > 1:
+            avg = DNF_AVG
+        else:
+            avg = (total - fastest - slowest) / (3)
         return avg, times
 
 
@@ -344,13 +346,18 @@ class PlayerGameRow():
             time_label.grid(row = self.y, column = col_num + 2, sticky = "", padx = 10)
 
         #self.frame.grid_columnconfigure(0, weight = 0)
+
     def repositionLabels(self, new_row_num, solve_num):
         self.player_name_label.grid(row = new_row_num, column = 1, sticky = "", padx = 10)
         for col_num, time_label in enumerate(self.player_time_labels):
             time_label.grid(row = new_row_num, column = col_num + 2, sticky = "", padx = 10)
         if solve_num >= 3:
             self.player_avg_label.grid(row = new_row_num, column = 7, sticky = "", padx = 10)
-        
+    
+    def resetLabels(self):
+        self.player_avg_label.grid_forget()
+        for time_label in self.player_time_labels:
+            time_label.configure(text = "#####")
     
     def displayNextResult(self, solve_num):
         label_to_configure = self.player_time_labels[solve_num]
@@ -367,7 +374,8 @@ class PlayerGameRow():
             self.player_avg_label.configure(text = f"{self.player.bpa:.2f}/{wpa}", text_color = "grey")
 
         elif (solve_num == 4):
-            self.player_avg_label.configure(text = f"{self.player.avg:.2f}", text_color = "black")
+            avg = "DNF" if self.player.avg == DNF else f"{self.player.avg:.2f}"
+            self.player_avg_label.configure(text = avg, text_color = "black")
 
 
 
@@ -384,8 +392,8 @@ class GameFrame():
         self.players_container = customtkinter.CTkFrame(master = self.frame, width = 800, height = 800, fg_color = "#f0f0f0")
         self.players_container.place(relx = 0.5, rely = 0.6, anchor = customtkinter.CENTER)
 
-        self.button = customtkinter.CTkButton(master = self.frame, text = "proceed to next solve", command = self.showNextTime)
-        self.button.place(relx = 0.8, rely = 0.8, anchor = customtkinter.CENTER)
+        self.rematch_button = customtkinter.CTkButton(master = self.frame, text = "rematch", command = self.resetRound)
+        self.rematch_button.place(relx = 0.8, rely = 0.8, anchor = customtkinter.CENTER)
         
         self.players = {}
         
@@ -417,7 +425,8 @@ class GameFrame():
         self.players[self.user] = PlayerGameRow(self.players_container, len(cpu_players) + 1, len(cpu_players) + 1 , self.user)
 
         ## DISPLAY SCRAMBLE 
-        self.scramble_label = customtkinter.CTkLabel(master = self.frame, text = "")
+        self.scramble_list = []
+        self.scramble_label = customtkinter.CTkLabel(master = self.frame, text = "", font = ("TkDefaultFont", 30))
         self.generateScramble()
         self.scramble_label.place(relx = 0.5, rely = 0.2, anchor = customtkinter.CENTER)
 
@@ -429,20 +438,60 @@ class GameFrame():
         self.enter_time_button = customtkinter.CTkButton(master = self.frame, text = "Enter Time", command = self.processUserTimeInput)
         self.enter_time_button.place(relx = 0.5, rely = 0.9, anchor = customtkinter.CENTER)
 
-    def processUserTimeInput(self):
-        time = float(self.time_input_label.get())
-        self.user.addTime(time) 
-        if self.solve_num == 4:
-            self.user.generateAvg()
-        elif self.solve_num == 3:
-            self.user.calcBPAandWPA()
-        self.showNextTime()
-        
-    def generateScramble(self):
-        self.scramble_label.configure(text = "Generating scramble...")
-        self.scramble_label.after(100, lambda : self.scramble_label.configure(text = scrambler333.get_WCA_scramble()))
 
-    
+        # USER FEEDBACK 
+        self.error_label = customtkinter.CTkLabel(master = self.frame, text = "Please correctly input a time", text_color = "red",
+                                                   font = ("TkDefaultFont", 30))
+    def tester(self):
+        pprint(self.scramble_list)
+
+    def resetRound(self):
+        for player, player_row in self.players.items():
+            player_row.resetLabels()
+            if (isinstance(player, userPlayer)):
+                player.times = []
+            else:
+                player.avg, player.times = player.generateNewResults()
+                player.calcBPAandWPA()
+        self.generateScramble()
+        self.solve_num = 0
+
+
+
+    def processUserTimeInput(self):
+        try:
+            time = float(self.time_input_label.get())
+            self.user.addTime(time) 
+            if self.solve_num == 4:
+                self.user.generateAvg()
+            elif self.solve_num == 3:
+                self.user.calcBPAandWPA()
+
+            self.showNextTime()
+            self.error_label.place_forget()
+            self.time_input_label.delete(0, len(str(time)))
+        except ValueError:
+            self.error_label.place(relx = 0.5, rely = 0.1, anchor = customtkinter.CENTER)
+             
+            
+    def generateScramble(self):
+        self.scramble_label.configure(text="Generating scramble...")
+        self.scramble_list = []
+        def showFirstScramble():
+            first_scramble = scrambler333.get_WCA_scramble()
+            self.scramble_label.configure(text = first_scramble)
+            self.scramble_list.append(first_scramble)
+
+            def generateRest():
+                for _ in range(4):
+                    self.scramble_list.append(scrambler333.get_WCA_scramble())
+                pprint(self.scramble_list)
+
+            self.scramble_label.after(100, generateRest)
+
+        self.scramble_label.after(100, showFirstScramble)
+        pprint(self.scramble_list)
+        
     def showNextTime(self):
               
         self.rerankPlayers()
@@ -451,7 +500,7 @@ class GameFrame():
         self.solve_num += 1
 
         if self.solve_num <= 4:
-            self.generateScramble()        
+            self.scramble_label.configure(text = self.scramble_list[self.solve_num])
 
     def rerankPlayers(self):
         #pprint(self.players.items())
