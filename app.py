@@ -35,7 +35,6 @@ class App(customtkinter.CTk):
     def switchFrame(self):
         if isinstance(self.currFrame, StartFrame):
             self.startFrame.frame.pack_forget()
-            self.startFrame.clearEntryText()
             self.players = list(self.startFrame.players.keys())
             self.gameFrame = GameFrame(self, self.players, self.switchFrame, self.startFrame.event)
             
@@ -45,8 +44,9 @@ class App(customtkinter.CTk):
             #self.bind('<Key>', self.startFrame.recvUserKeyInput)
             self.gameFrame.frame.pack_forget()
             self.startFrame.frame.pack(expand = True)
-            self.startFrame.clearEntryText()
             self.currFrame = self.startFrame
+
+        self.startFrame.clearEntryText()
         self.bind('<Key>', self.currFrame.processUserKeyInput)
 
     def helper_func(self, key):

@@ -212,11 +212,18 @@ class StartFrame():
 
     def startRound(self):
         print("STARTED")
+    
+    def changeEventChoice(self, shift):
+        curr_event_index = list(EVENT_CODES.keys()).index(self.event)
+        num_events = len(EVENT_CODES)
+        self.event = list(EVENT_CODES.keys())[(curr_event_index + shift) % num_events]
+        self.event_dropdown.set(self.event)
 
     def event_dropdown_callback(self, choice):
         if self.event != choice:
             self.event = choice
             self.clear_players()
+    
 
     def clear_players(self):
         for player, player_row in self.players.items():
@@ -254,10 +261,17 @@ class StartFrame():
     def processUserKeyInput(self, key):
         ENTER_KEYCODE = 36
         PLUS_KEYCODE = 21
+        UP_KEYCODE = 111
+        DOWN_KEYCODE = 116
+        print(key)
         if key.keycode == ENTER_KEYCODE:
             self.input_wca_id_button_function()
         elif key.keycode == PLUS_KEYCODE:
             self.swtich_frame_func()
+        elif key.keycode == UP_KEYCODE:
+            self.changeEventChoice(-1) 
+        elif key.keycode == DOWN_KEYCODE:
+            self.changeEventChoice(1)
 
 
     def input_wca_id_button_function(self):
