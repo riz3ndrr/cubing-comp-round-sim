@@ -1,8 +1,5 @@
 from numpy import random
 import requests
-
-
-RESULTS = 'results'
 NUM_RESULTS_TO_COLLECT = 50
 DNF = 999
 
@@ -17,7 +14,7 @@ class Player:
             self.wpa = (sum(times) - min(times)) / 3
         #return bpa, wpa
 
-class userPlayer(Player):
+class UserPlayer(Player):
     def __init__(self, name):
         self.name = name
         self.avg = None
@@ -45,7 +42,7 @@ class userPlayer(Player):
 
 
 
-class gennedPlayer(Player):
+class GennedPlayer(Player):
     def __init__(self, wca_id, event):
         self.wca_id = wca_id
         url = f"https://raw.githubusercontent.com/robiningelbrecht/wca-rest-api/master/api/persons/{self.wca_id}.json"
@@ -98,7 +95,7 @@ class gennedPlayer(Player):
         num_results = 0
         times = []
         if self.validPlayer():
-            for comp, results in self.player_data[RESULTS].items():
+            for comp, results in self.player_data['results'].items():
                 if self.event in results:
                     for result in results[self.event]:
                         for solve in result['solves']:
