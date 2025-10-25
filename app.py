@@ -202,6 +202,25 @@ EVENT_CODES = {
     "Square-1": "sq1",
     "3x3x3 Multi-Blind": "333mbf"
 }
+EVENT_SCRAMBLES = {
+    "2x2x2 Cube": scrambler222.get_WCA_scramble,
+    "3x3x3 Cube": scrambler333.get_WCA_scramble,
+    "4x4x4 Cube": scrambler444.get_WCA_scramble,
+    "5x5x5 Cube": scrambler555.get_WCA_scramble,
+    "6x6x6 Cube": scrambler666.get_WCA_scramble,
+    "7x7x7 Cube": scrambler777.get_WCA_scramble,
+    "3x3x3 Blindfolded": scrambler333.get_WCA_scramble,
+    "3x3x3 Fewest Moves": scrambler333.get_WCA_scramble,
+    "3x3x3 One-Handed": scrambler333.get_WCA_scramble,
+    "3x3x3 Multi-Blind": scrambler333.get_3BLD_scramble,
+    "Pyraminx": pyraminxScrambler.get_WCA_scramble,
+    "Megaminx": megaminxScrambler.get_WCA_scramble,
+    "Skewb": skewbScrambler.get_WCA_scramble,
+    "Square-1": squareOneScrambler.get_WCA_scramble,
+    "Clock": clockScrambler.get_WCA_scramble,
+    "4x4x4 Blindfolded": scrambler444.get_WCA_scramble,
+    "5x5x5 Blindfolded": scrambler555.get_WCA_scramble
+}
 class PlayerRowLabel():
     ## TODO MAKE THIS EFFFICIENT
     def __init__(self, root, x, y, remove_player_func, player):
@@ -391,12 +410,12 @@ class PlayerGameRow():
 
 
 class GameFrame():
-    def __init__(self, root, cpu_players, switchFrameFunc):
+    def __init__(self, root, cpu_players, switchFrameFunc, scramble_func):
         self.frame = customtkinter.CTkFrame(master = root, width = 1000, height = 1000, fg_color = "white")
         self.label = customtkinter.CTkLabel(self.frame, text = "WADSHASDHSAJD")
         self.label.place(relx = 0.5, rely = 0.1, anchor = customtkinter.CENTER)
         self.solve_num = 0
-        #print(self.players, "AAA") 
+        self.scramble_func = scramble_func
 
         ## PLAYER CONTAINER
         self.players_container = customtkinter.CTkScrollableFrame(master = self.frame, width = 800, height = 600, fg_color = "#f0f0f0")
@@ -498,19 +517,22 @@ class GameFrame():
             self.time_input_label.delete(0, len(str(time)))
         except ValueError:
             self.error_label.place(relx = 0.5, rely = 0.1, anchor = customtkinter.CENTER)
+
+
              
             
     def generateScramble(self):
+        # TODO: DISPLAY SOME EVENTS CORRECTLY
         self.scramble_label.configure(text="Generating scramble...")
         self.scramble_list = []
         def showFirstScramble():
-            first_scramble = scrambler333.get_WCA_scramble()
+            first_scramble = self.scramble_func()
             self.scramble_label.configure(text = first_scramble)
             self.scramble_list.append(first_scramble)
 
             def generateRest():
                 for _ in range(4):
-                    self.scramble_list.append(scrambler333.get_WCA_scramble())
+                    self.scramble_list.append(self.scramble_func())
                 pprint(self.scramble_list)
 
             self.scramble_label.after(100, generateRest)
@@ -561,8 +583,10 @@ class App(customtkinter.CTk):
     def switchFrame(self):
         if isinstance(self.currFrame, StartFrame):
             self.startFrame.frame.pack_forget()
-            self.players = self.startFrame.getPlayers() 
-            self.gameFrame = GameFrame(self, self.players, self.switchFrame)
+            self.players = list(self.startFrame.players.keys())
+            self.scramble_func = EVENT_SCRAMBLES[self.startFrame.event]
+            self.gameFrame = GameFrame(self, self.players, self.switchFrame, self.scramble_func)
+            
             self.gameFrame.frame.pack(expand = True)
             self.currFrame = self.gameFrame
         elif isinstance(self.currFrame, GameFrame):
@@ -573,7 +597,6 @@ class App(customtkinter.CTk):
         self.bind('<Key>', self.currFrame.processUserKeyInput)
 
     def helper_func(self, key):
-        ## TODO:  DONT HARDCODE THE SPECIFIC FUNCTION HERE
         self.currFrame.processUserKeyInput()
 
 class StartFrame():
@@ -614,13 +637,12 @@ class StartFrame():
                                         font = ("TkDefaultFont", 25))
         self.event_label.place(relx = 0.6, rely = 0.185, anchor=customtkinter.CENTER)
 
-        #self.event = customtkinter.StringVar(value=list(EVENT_CODES.keys())[0])
         self.event_dropdown = customtkinter.CTkOptionMenu(self.frame, values=list(EVENT_CODES.keys()),
                                          command=self.event_dropdown_callback,
                                          )
         
         self.event_dropdown.place(relx=0.55, rely = 0.21)
-        self.event = None
+        self.event = list(EVENT_CODES.keys())[0]
 
         
         ## FRAME / COMPETITORS CONTAINER ##
@@ -640,9 +662,6 @@ class StartFrame():
         #root.bind('<Key>', self.recvUserKeyInput)
     def startRound(self):
         print("STARTED")
-        
-    def getPlayers(self):
-        return list(self.players.keys())
 
     def event_dropdown_callback(self, choice):
         if self.event != choice:
