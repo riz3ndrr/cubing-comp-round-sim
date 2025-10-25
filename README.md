@@ -1,6 +1,6 @@
 # WCA Competition Round Simulator
 
-Want to spice up your practice routine up before your next competition? Use this app to "compete" against some of the greatest cubers of all time
+Want to spice up your practice routine before your next competition? Use this app to "compete" against some of the greatest speedcubers of all time
 
 ## How to run this app on your computer?
 
@@ -24,11 +24,11 @@ Simply run the following command in your terminal
 
 ## App Instructions
 
-1. Enter cubers (their WCA ID) who you'd like to compete against and select the event you'd like to practice
+1. For the cubers you wish to compete against, enter their WCA IDs, and select the event you'd like to practice
 2. Click enter to start the round
-3. A scramble should be generated, once you've done the scramble, enter your time. Other people's times should be displayed and players are ranked by their fastest single (for the first 4 solves).
+3. A scramble should be generated, once you've done the scramble, enter your time. Other people's times should be displayed and players are ranked by their fastest single (for the first 4 solves)
 4. By the fourth solve, competitors' BPA / WPA* will be displayed
-5. After you're done with the average, you are ranked against other cubers and can choose to either restart the round with the same competitors, or go back to the start screen to change the event or the competitors.
+5. After you're done with the average, you are ranked against other cubers and can choose to either restart the round with the same competitors, or go back to the start screen to change the event or the competitors
 
 *BPA/WPA = Best Possible and Worst Possible Average of a particular competitor
 
