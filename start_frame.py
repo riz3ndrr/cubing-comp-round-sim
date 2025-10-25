@@ -2,6 +2,28 @@ import customtkinter
 
 from player import Player, GennedPlayer
 
+
+EVENT_CODES = {
+    "2x2x2 Cube": "222",
+    "3x3x3 Cube": "333",
+    "3x3x3 Blindfolded": "333bf",
+    "3x3x3 Fewest Moves": "333fm",
+    "3x3x3 One-Handed": "333oh",
+    "4x4x4 Cube": "444",
+    "4x4x4 Blindfolded": "444bf",
+    "5x5x5 Cube": "555",
+    "5x5x5 Blindfolded": "555bf",
+    "6x6x6 Cube": "666",
+    "7x7x7 Cube": "777",
+    "Clock": "clock",
+    "Megaminx": "minx",
+    "Pyraminx": "pyram",
+    "Skewb": "skewb",
+    "Square-1": "sq1",
+    "3x3x3 Multi-Blind": "333mbf"
+}
+
+
 class PlayerRowLabel():
     ## TODO MAKE THIS EFFFICIENT
     def __init__(self, root, x, y, remove_player_func, player):
@@ -178,10 +200,16 @@ class StartFrame():
         self.players_row_offsety = 0
         self.players_col_num = 0
 
-        self.start_button = customtkinter.CTkButton(master = self.frame, text = "Start", command = swtich_frame_func)
-        self.start_button.place(relx = 0.8, rely = 0.95)
+
+        self.swtich_frame_func = swtich_frame_func
+        self.start_button = customtkinter.CTkButton(master = self.frame, text = "Start (+)", command = self.swtich_frame_func,
+                                                    width = 300, height = 50, font = ("TkDefaultFont", 20))
+        self.start_button.place(relx = 0.5, rely = 0.95, anchor = customtkinter.CENTER)
 
         #root.bind('<Key>', self.recvUserKeyInput)
+    def clearEntryText(self):
+        self.wca_id_entry.delete(0, len(self.wca_id_entry.get()))
+
     def startRound(self):
         print("STARTED")
 
@@ -224,9 +252,13 @@ class StartFrame():
         return False
     
     def processUserKeyInput(self, key):
-        ENTER_KEY = 36 
-        if key.keycode == ENTER_KEY:
+        ENTER_KEYCODE = 36
+        PLUS_KEYCODE = 21
+        if key.keycode == ENTER_KEYCODE:
             self.input_wca_id_button_function()
+        elif key.keycode == PLUS_KEYCODE:
+            self.swtich_frame_func()
+
 
     def input_wca_id_button_function(self):
         inputted_wca_id = self.wca_id_entry.get()

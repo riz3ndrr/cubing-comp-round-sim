@@ -53,7 +53,7 @@ class PlayerGameRow():
 
 
         self.player_name_label = customtkinter.CTkLabel(root, text = display_name, font = ("TkDefaultFont", 20))
-        self.player_name_label.grid(row = self.y, column = 1, sticky = "", padx = 10, pady = 10)
+        self.player_name_label.grid(row = self.y, column = 1, sticky = "w", padx = 10, pady = 10)
         
         self.player_time_label_0 = customtkinter.CTkLabel(root, text = "#####", font = ("TkDefaultFont", 20))
         self.player_time_label_1 = customtkinter.CTkLabel(root, text = "#####", font = ("TkDefaultFont", 20))
@@ -166,11 +166,12 @@ class GameFrame():
         self.enter_time_button = customtkinter.CTkButton(master = self.frame, text = "Enter Time", command = self.processUserTimeInput, height = 30)
         self.enter_time_button.place(relx = 0.7, rely = user_input_y, anchor = customtkinter.CENTER)
 
-        self.rematch_button = customtkinter.CTkButton(master = self.frame, text = "Rematch", command = self.resetRound, height = 30)
+        self.rematch_button = customtkinter.CTkButton(master = self.frame, text = "Rematch (R)", command = self.resetRound, height = 30)
         self.rematch_button.place(relx = 0.4, rely = user_input_y + 0.05, anchor = customtkinter.CENTER)
 
             ## SWITCH FRAMES 
-        self.switch_frame_button = customtkinter.CTkButton(master = self.frame, text = "Change Competitors", command = switchFrameFunc, height = 30)
+        self.switchFrameFunc = switchFrameFunc
+        self.switch_frame_button = customtkinter.CTkButton(master = self.frame, text = "Change Competitors (C)", command = self.switchFrameFunc, height = 30)
         self.switch_frame_button.place(relx = 0.6, rely = user_input_y + 0.05, anchor = customtkinter.CENTER)
 
         # USER FEEDBACK 
@@ -195,15 +196,28 @@ class GameFrame():
         self.solve_num = 0
 
     def processUserKeyInput(self, key):
-        ENTER_KEY = 36 
-        if key.keycode == ENTER_KEY:
+        ENTER_KEYSYM = 36
+        R = 27
+        C = 54
+        print(key)
+        if key.keycode == ENTER_KEYSYM:
             self.processUserTimeInput()
+        elif key.keycode == R:
+            self.resetRound()
+        elif key.keycode == C:
+            self.switchFrameFunc()
+
     
     def processUserTimeInput(self):
-        print("WE HERE")
         try:
-            time = float(self.time_input_label.get())
-            self.user.addTime(time) 
+            time = self.time_input_label.get()
+
+            if time == 'DNF':
+                self.user.addTime(DNF)
+            else:
+                time = float(self.time_input_label.get())
+                self.user.addTime(time)
+
             if self.solve_num == 4:
                 self.user.generateAvg()
             elif self.solve_num == 3:
@@ -220,7 +234,7 @@ class GameFrame():
             
     def generateScramble(self):
         # TODO: DISPLAY SOME EVENTS CORRECTLY
-        self.scramble_label.configure(text="Generating scramble...")
+        self.scramble_label.configure(text="Generating scrambles...")
         self.scramble_list = []
         def showFirstScramble():
             first_scramble = self.scramble_func()
