@@ -326,7 +326,17 @@ class PlayerGameRow():
         self.player = player
         self.y = y
         self.frame = root
-        self.player_name_label = customtkinter.CTkLabel(root, text = player.name, font = ("TkDefaultFont", 20))
+
+        NAME_DISPLAY_LENGTH = 16
+        display_name = player.name
+        if len(display_name) > NAME_DISPLAY_LENGTH:
+            display_name = display_name[:NAME_DISPLAY_LENGTH - 3] + "..."
+        elif len(display_name) < NAME_DISPLAY_LENGTH:
+            display_name += " " * (NAME_DISPLAY_LENGTH - len(display_name))
+
+
+
+        self.player_name_label = customtkinter.CTkLabel(root, text = display_name, font = ("TkDefaultFont", 20))
         self.player_name_label.grid(row = self.y, column = 1, sticky = "", padx = 10, pady = 10)
         
         self.player_time_label_0 = customtkinter.CTkLabel(root, text = "#####", font = ("TkDefaultFont", 20))
@@ -396,7 +406,6 @@ class GameFrame():
         
         self.players = {}
         
-
         self.player_name_header = customtkinter.CTkLabel(master = self.players_container, text = "Player:", font = ("TkDefaultFont", 20))
         self.player_name_header.grid(row = 0, column = 1, sticky = "", padx = 10)
 
@@ -469,8 +478,11 @@ class GameFrame():
         self.generateScramble()
         self.solve_num = 0
 
-
-
+    def processUserKeyInput(self, key):
+        ENTER_KEY = 36 
+        if key.keycode == ENTER_KEY:
+            self.processUserTimeInput()
+    
     def processUserTimeInput(self):
         print("WE HERE")
         try:
@@ -543,7 +555,7 @@ class App(customtkinter.CTk):
         self.startFrame.frame.pack(expand = True)
         self.currFrame = self.startFrame
         self.frames = [self.gameFrame, self.startFrame]
-        self.bind('<Key>', self.helper_func)
+        self.bind('<Key>', self.currFrame.processUserKeyInput)
 
 
     def switchFrame(self):
@@ -558,15 +570,11 @@ class App(customtkinter.CTk):
             self.gameFrame.frame.pack_forget()
             self.startFrame.frame.pack(expand = True)
             self.currFrame = self.startFrame
+        self.bind('<Key>', self.currFrame.processUserKeyInput)
+
     def helper_func(self, key):
-        ENTER_KEYCODE = 36
-        print(key)
-            ## TODO, DONT HARDCODE THE SPECIFIC FUNCTION HERE
-        if key.keycode == ENTER_KEYCODE:
-            if isinstance(self.currFrame, StartFrame):
-                self.currFrame.input_wca_id_button_function()
-            elif isinstance(self.currFrame, GameFrame):
-                self.currFrame.processUserTimeInput()
+        ## TODO:  DONT HARDCODE THE SPECIFIC FUNCTION HERE
+        self.currFrame.processUserKeyInput()
 
 class StartFrame():
     def __init__(self, root, swtich_frame_func):
@@ -673,7 +681,11 @@ class StartFrame():
             if opp.wca_id == wca_id:
                 return True
         return False
-
+    
+    def processUserKeyInput(self, key):
+        ENTER_KEY = 36 
+        if key.keycode == ENTER_KEY:
+            self.input_wca_id_button_function()
 
     def input_wca_id_button_function(self):
         inputted_wca_id = self.wca_id_entry.get()
