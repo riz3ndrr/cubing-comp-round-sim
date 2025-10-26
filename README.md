@@ -38,6 +38,16 @@ Simply run the following command in your terminal
 - Every generated cuber has the same chance of getting a DNF (as of now is 2%) regardless of their DNF rate in competition
 - Selecting a different event will clear the entered players (i.e., you will have to enter everybody's WCA IDs again)
 
+## Keyboard Shortcuts
+
+| Key   | Action    |
+|--------------- | --------------- |
+| Enter   | Either enters the inputted WCA ID or your time   |
+| +   | Starts the round from the start screen  |
+| C or c   | Goes back to the start screen from the round screen to change competitors|
+| R or r  | Restarts the round   |
+| Up/Down Arrow | Changes the chosen event |
+
 ## Acknowledgements
 
 This app relies on the WCA Rest API made by Robin Ingelbrecht for simulating player times.
@@ -48,4 +58,3 @@ This app relies on the WCA Rest API made by Robin Ingelbrecht for simulating pla
 - Be able to edit times
 - General UI tweaks
 - Have a keyboard shortcut for some of our buttons such as starting a round
-
