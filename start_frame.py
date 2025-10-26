@@ -3,25 +3,26 @@ import customtkinter
 from player import Player, GennedPlayer, PlayerHasNoResultsError, InvalidWCAIDError
 
 
+# NOTE: NO MULTI BLIND
 EVENT_CODES = {
-    "2x2x2 Cube": "222",
     "3x3x3 Cube": "333",
+    "2x2x2 Cube": "222",
+    "4x4x4 Cube": "444",
+    "5x5x5 Cube": "555",
+    "6x6x6 Cube": "666",
+    "7x7x7 Cube": "777",
     "3x3x3 Blindfolded": "333bf",
     "3x3x3 Fewest Moves": "333fm",
     "3x3x3 One-Handed": "333oh",
-    "4x4x4 Cube": "444",
-    "4x4x4 Blindfolded": "444bf",
-    "5x5x5 Cube": "555",
-    "5x5x5 Blindfolded": "555bf",
-    "6x6x6 Cube": "666",
-    "7x7x7 Cube": "777",
     "Clock": "clock",
     "Megaminx": "minx",
     "Pyraminx": "pyram",
     "Skewb": "skewb",
     "Square-1": "sq1",
-    "3x3x3 Multi-Blind": "333mbf"
+    "4x4x4 Blindfolded": "444bf",
+    "5x5x5 Blindfolded": "555bf",
 }
+
 
 
 class PlayerRowLabel():

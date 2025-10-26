@@ -163,10 +163,11 @@ class GameFrame():
         
         
         user_input_y = 0.2
-        self.time_input_label = customtkinter.CTkEntry(master = self.frame, placeholder_text = "E.G., 6.53", width = 400)
+        self.time_input_label = customtkinter.CTkEntry(master = self.frame, placeholder_text = "E.G., 6.53", width = 400, state = "normal")
         self.time_input_label.place(relx = 0.4, rely = user_input_y, anchor = customtkinter.CENTER)
 
-        self.enter_time_button = customtkinter.CTkButton(master = self.frame, text = "Enter Time", command = self.processUserTimeInput, height = 30)
+        self.enter_time_button = customtkinter.CTkButton(master = self.frame, text = "Enter Time", command = self.processUserTimeInput,
+                                                         height = 30, state = "normal")
         self.enter_time_button.place(relx = 0.7, rely = user_input_y, anchor = customtkinter.CENTER)
 
         self.rematch_button = customtkinter.CTkButton(master = self.frame, text = "Rematch (R)", command = self.resetRound, width = 200, height = 40)
@@ -184,6 +185,9 @@ class GameFrame():
 
 
     def resetRound(self):
+        self.time_input_label.configure(state = "normal")
+        self.enter_time_button.configure(state = "normal")
+
         for player, player_row in self.players.items():
             player_row.resetLabels()
             if (isinstance(player, UserPlayer)):
@@ -199,7 +203,7 @@ class GameFrame():
         R = 27
         C = 54
         print(key)
-        if key.keycode == ENTER_KEYSYM:
+        if key.keycode == ENTER_KEYSYM and self.solve_num <= 4:
             self.processUserTimeInput()
         elif key.keycode == R:
             self.resetRound()
@@ -229,6 +233,7 @@ class GameFrame():
             self.time_input_label.delete(0, len(str(time)))
         except ValueError:
             self.error_label.place(relx = 0.5, rely = 0.1, anchor = customtkinter.CENTER)
+
 
 
              
@@ -261,6 +266,10 @@ class GameFrame():
 
         if self.solve_num <= 4:
             self.scramble_label.configure(text = self.scramble_list[self.solve_num])
+        else:
+            self.time_input_label.configure(state = "disabled")
+            self.enter_time_button.configure(state = "disabled")
+
 
     def rerankPlayers(self):
         #pprint(self.players.items())
