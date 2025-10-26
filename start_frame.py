@@ -1,6 +1,6 @@
 import customtkinter
 
-from player import Player, GennedPlayer
+from player import Player, GennedPlayer, PlayerHasNoResultsError, InvalidWCAIDError
 
 
 EVENT_CODES = {
@@ -218,6 +218,7 @@ class StartFrame():
         num_events = len(EVENT_CODES)
         self.event = list(EVENT_CODES.keys())[(curr_event_index + shift) % num_events]
         self.event_dropdown.set(self.event)
+        print(self.event)
 
     def event_dropdown_callback(self, choice):
         if self.event != choice:
@@ -270,20 +271,26 @@ class StartFrame():
             self.swtich_frame_func()
         elif key.keycode == UP_KEYCODE:
             self.changeEventChoice(-1) 
+            self.clear_players()
         elif key.keycode == DOWN_KEYCODE:
             self.changeEventChoice(1)
+            self.clear_players()
 
 
     def input_wca_id_button_function(self):
         inputted_wca_id = self.wca_id_entry.get()
-        self.wca_id_entry_feedback_label.place(relx = 0.8, rely = 0.225, anchor = customtkinter.CENTER)
+        self.wca_id_entry_feedback_label.place(relx = 0.5, rely = 0.275, anchor = customtkinter.CENTER)
 
         if self.playerAlreadyExists(inputted_wca_id):
             self.wca_id_entry_feedback_label.configure(text = "Player Already Exists", text_color = "red")
             return    
+        try:
+            new_player = GennedPlayer(inputted_wca_id, EVENT_CODES[self.event_dropdown.get()])
+        except PlayerHasNoResultsError:
+            self.wca_id_entry_feedback_label.configure(text = "Player has no results in this event", text_color = "red")
+            return
 
-        new_player = GennedPlayer(inputted_wca_id, EVENT_CODES[self.event_dropdown.get()])
-        if new_player.validPlayer() is False:
+        except InvalidWCAIDError:
             self.wca_id_entry_feedback_label.configure(text = "WCA ID invalid", text_color = "red")
             return
 
@@ -300,7 +307,8 @@ class StartFrame():
         self.players_col_num = (self.players_col_num + 1) % 2
         if self.players_col_num == 0:
             self.players_row_offsety += 1
-
+        
+        # For testing purposes
         print(len(self.players))
         print(new_player.times)
         print(new_player.avg)

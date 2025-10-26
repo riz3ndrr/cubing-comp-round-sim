@@ -15,24 +15,25 @@ from cubescrambler import (
     clockScrambler
 )
 
-EVENT_SCRAMBLES = {
-    "2x2x2 Cube": scrambler222.get_WCA_scramble,
-    "3x3x3 Cube": scrambler333.get_WCA_scramble,
-    "4x4x4 Cube": scrambler444.get_WCA_scramble,
-    "5x5x5 Cube": scrambler555.get_WCA_scramble,
-    "6x6x6 Cube": scrambler666.get_WCA_scramble,
-    "7x7x7 Cube": scrambler777.get_WCA_scramble,
-    "3x3x3 Blindfolded": scrambler333.get_WCA_scramble,
-    "3x3x3 Fewest Moves": scrambler333.get_WCA_scramble,
-    "3x3x3 One-Handed": scrambler333.get_WCA_scramble,
-    "3x3x3 Multi-Blind": scrambler333.get_3BLD_scramble,
-    "Pyraminx": pyraminxScrambler.get_WCA_scramble,
-    "Megaminx": megaminxScrambler.get_WCA_scramble,
-    "Skewb": skewbScrambler.get_WCA_scramble,
-    "Square-1": squareOneScrambler.get_WCA_scramble,
-    "Clock": clockScrambler.get_WCA_scramble,
-    "4x4x4 Blindfolded": scrambler444.get_WCA_scramble,
-    "5x5x5 Blindfolded": scrambler555.get_WCA_scramble
+# Tuple of the form (scramble function, font size)
+EVENT_INFO = {
+    "2x2x2 Cube": (scrambler222.get_WCA_scramble, 25),
+    "3x3x3 Cube": (scrambler333.get_WCA_scramble, 25),
+    "4x4x4 Cube": (scrambler444.get_WCA_scramble, 20),
+    "5x5x5 Cube": (scrambler555.get_WCA_scramble, 20),
+    "6x6x6 Cube": (scrambler666.get_WCA_scramble, 20),
+    "7x7x7 Cube": (scrambler777.get_WCA_scramble, 20),
+    "3x3x3 Blindfolded": (scrambler333.get_WCA_scramble, 25),
+    "3x3x3 Fewest Moves": (scrambler333.get_WCA_scramble, 25),
+    "3x3x3 One-Handed": (scrambler333.get_WCA_scramble, 25),
+    "3x3x3 Multi-Blind": (scrambler333.get_3BLD_scramble, 25),
+    "Pyraminx": (pyraminxScrambler.get_WCA_scramble, 25),
+    "Megaminx": (megaminxScrambler.get_WCA_scramble, 20),
+    "Skewb": (skewbScrambler.get_WCA_scramble, 25),
+    "Square-1": (squareOneScrambler.get_WCA_scramble, 25),
+    "Clock": (clockScrambler.get_WCA_scramble, 25),
+    "4x4x4 Blindfolded": (scrambler444.get_WCA_scramble, 20),
+    "5x5x5 Blindfolded": (scrambler555.get_WCA_scramble, 20)
 }
 
 DNF = 999
@@ -109,14 +110,14 @@ class PlayerGameRow():
 class GameFrame():
     def __init__(self, root, cpu_players, switchFrameFunc, event):
         self.frame = customtkinter.CTkFrame(master = root, width = 1000, height = 1000, fg_color = "white")
-        self.label = customtkinter.CTkLabel(self.frame, text = "WADSHASDHSAJD")
-        self.label.place(relx = 0.5, rely = 0.1, anchor = customtkinter.CENTER)
+        #self.label = customtkinter.CTkLabel(self.frame, text = "WADSHASDHSAJD")
+        #self.label.place(relx = 0.5, rely = 0.1, anchor = customtkinter.CENTER)
         self.solve_num = 0
-        self.scramble_func = EVENT_SCRAMBLES[event]
+        self.scramble_func = EVENT_INFO[event][0]
 
         ## PLAYER CONTAINER
-        self.players_container = customtkinter.CTkScrollableFrame(master = self.frame, width = 850, height = 600, fg_color = "#f0f0f0")
-        self.players_container.place(relx = 0.5, rely = 0.7, anchor = customtkinter.CENTER)
+        self.players_container = customtkinter.CTkScrollableFrame(master = self.frame, width = 850, height = 700, fg_color = "#f0f0f0")
+        self.players_container.place(relx = 0.5, rely = 0.65, anchor = customtkinter.CENTER)
 
         ## DISPLAY PLAYER STATS 
         
@@ -151,15 +152,17 @@ class GameFrame():
 
         ## DISPLAY SCRAMBLE 
         self.scramble_list = []
-        self.scramble_label = customtkinter.CTkLabel(master = self.frame, text = "", font = ("TkDefaultFont", 30))
+        scramble_font_size = EVENT_INFO[event][1]
+        self.scramble_label = customtkinter.CTkLabel(master = self.frame, text = "", font = ("TkDefaultFont", scramble_font_size),
+                                                     wraplength = 800, justify = customtkinter.CENTER, width = 700)
         self.generateScramble()
-        self.scramble_label.place(relx = 0.5, rely = 0.2, anchor = customtkinter.CENTER)
+        self.scramble_label.place(relx = 0.5, rely = 0.1, anchor = customtkinter.CENTER)
 
 
         # GET USER INPUT
         
         
-        user_input_y = 0.3
+        user_input_y = 0.2
         self.time_input_label = customtkinter.CTkEntry(master = self.frame, placeholder_text = "E.G., 6.53", width = 400)
         self.time_input_label.place(relx = 0.4, rely = user_input_y, anchor = customtkinter.CENTER)
 
@@ -179,11 +182,6 @@ class GameFrame():
         self.error_label = customtkinter.CTkLabel(master = self.frame, text = "Please correctly input a time", text_color = "red")
         #root.bind('<Key>', self.enterUserTime)
 
-
-
-
-    def tester(self):
-        pprint(self.scramble_list)
 
     def resetRound(self):
         for player, player_row in self.players.items():
@@ -205,9 +203,11 @@ class GameFrame():
             self.processUserTimeInput()
         elif key.keycode == R:
             self.resetRound()
+            self.time_input_label.delete(0, len(self.time_input_label.get()))
+
         elif key.keycode == C:
             self.switchFrameFunc()
-
+        
     
     def processUserTimeInput(self):
         try:

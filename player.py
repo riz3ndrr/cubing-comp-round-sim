@@ -2,6 +2,25 @@ from numpy import random
 import requests
 NUM_RESULTS_TO_COLLECT = 50
 DNF = 999
+INVALID_TIMES = [-1, -2, 0]
+
+
+class PlayerHasNoResultsError(Exception):
+    """Exception raised when a player has no results for a given event"""
+    def __init__(self, message, error_code):
+        super().__init__(message)
+        self.error_code = error_code 
+    def __str__(self):
+        return f"{self.message} (Error Code: {self.error_code})"
+
+class InvalidWCAIDError(Exception):
+    """Exception raised when the inputted WCA ID does not exist"""
+    def __init__(self, message, error_code):
+        super().__init__(message)
+        self.error_code = error_code 
+    def __str__(self):
+        return f"{self.message} (Error Code: {self.error_code})"
+
 
 class Player:
     def calcBPAandWPA(self):
@@ -48,7 +67,9 @@ class GennedPlayer(Player):
         url = f"https://raw.githubusercontent.com/robiningelbrecht/wca-rest-api/master/api/persons/{self.wca_id}.json"
         self.response = requests.get(url) 
         self.event = event
-        if self.validPlayer():
+        if self.validPlayer() is False:
+            raise InvalidWCAIDError("Invalid WCA ID", 400)
+        else:
             self.player_data = self.response.json()
             self.name = self.player_data['name']
             self.country = self.player_data['country']
@@ -99,11 +120,13 @@ class GennedPlayer(Player):
                 if self.event in results:
                     for result in results[self.event]:
                         for solve in result['solves']:
-                            if solve != DNF:
+                            if solve not in INVALID_TIMES:
                                 times.append(solve) 
                                 num_results += 1
                             if num_results == NUM_RESULTS_TO_COLLECT:
                                 return times
+            if len(times) == 0 :
+                raise PlayerHasNoResultsError("Player has no results in this event", 400)
             return times
         else:
             print(f"Request failed with status code {self.response.status_code}")
