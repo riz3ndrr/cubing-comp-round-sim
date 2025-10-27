@@ -1,6 +1,7 @@
 import customtkinter
 
 from player import Player, GennedPlayer, PlayerHasNoResultsError, InvalidWCAIDError
+import csv
 
 
 # NOTE: NO MULTI BLIND
@@ -144,8 +145,22 @@ class PlayerRowLabel():
         self.container.grid(row = new_y, column = new_x, padx = 5, pady=10) 
 
 
+class importFailedPopup(customtkinter.CTkToplevel):
+    def __init__(self, failed_imports, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.geometry("500x400")
+        self.header = customtkinter.CTkLabel(self, text = "The following WCA IDs failed to import: ",
+                                             font = ("TkDefaultFont", 25))
+        self.header.pack(pady=10)
+
+        for id in failed_imports:
+            self.label = customtkinter.CTkLabel(self, text = id, font = ("TkDefaultFont", 15))
+            self.label.pack()
+
+
+
 class StartFrame():
-    def __init__(self, root, swtich_frame_func):
+    def __init__(self, root, swtich_frame_func, csv_filename):
         self.frame = customtkinter.CTkFrame(master = root, width = 1000, height = 1000, fg_color="white")
         #self.frame.pack(expand = True)
         self.app_label = customtkinter.CTkLabel(self.frame, 
@@ -166,7 +181,7 @@ class StartFrame():
         self.wca_id_entry.place(relx = 0.25, rely = 0.225, anchor = customtkinter.CENTER)
 
 
-        self.input_wca_id_button = customtkinter.CTkButton(master=self.frame, text="Enter", command=self.input_wca_id_button_function)
+        self.input_wca_id_button = customtkinter.CTkButton(master=self.frame, text="Enter", command=self.input_wca_id)
         self.input_wca_id_button.place(relx = 0.45, rely = 0.225, anchor=customtkinter.CENTER)
 
         self.wca_id_entry_feedback_label = customtkinter.CTkLabel(self.frame, text = "WCA ID invalid",
@@ -206,8 +221,33 @@ class StartFrame():
         self.start_button = customtkinter.CTkButton(master = self.frame, text = "Start (+)", command = self.swtich_frame_func,
                                                     width = 300, height = 50, font = ("TkDefaultFont", 20))
         self.start_button.place(relx = 0.5, rely = 0.95, anchor = customtkinter.CENTER)
+        
+        self.csv_filename = csv_filename
+        self.importPlayers()
 
-        #root.bind('<Key>', self.recvUserKeyInput)
+    def importPlayers(self):
+        wca_ids = []
+        with open(self.csv_filename, 'r') as players_csv:
+            csvreader = csv.reader(players_csv)
+            #fields = next(csvreader)
+            for wca_id in csvreader:
+                wca_ids.append(wca_id) 
+        #print(wca_ids)
+        failed_imports = []
+        for id in wca_ids:
+            new_player = self.createPlayer(id[0])
+            if new_player is None:
+                failed_imports.append(id[0])
+            else:
+                new_player = self.addPlayerLabel(new_player)
+
+        if len(failed_imports) != 0:
+            self.popup = importFailedPopup(failed_imports)
+
+
+
+
+
     def clearEntryText(self):
         self.wca_id_entry.delete(0, len(self.wca_id_entry.get()))
 
@@ -267,7 +307,7 @@ class StartFrame():
         DOWN_KEYCODE = 116
         print(key)
         if key.keycode == ENTER_KEYCODE:
-            self.input_wca_id_button_function()
+            self.input_wca_id()
         elif key.keycode == PLUS_KEYCODE:
             self.swtich_frame_func()
         elif key.keycode == UP_KEYCODE:
@@ -278,26 +318,24 @@ class StartFrame():
             self.clear_players()
 
 
-    def input_wca_id_button_function(self):
-        inputted_wca_id = self.wca_id_entry.get()
-        self.wca_id_entry_feedback_label.place(relx = 0.5, rely = 0.275, anchor = customtkinter.CENTER)
-
+    def createPlayer(self, inputted_wca_id):
         if self.playerAlreadyExists(inputted_wca_id):
             self.wca_id_entry_feedback_label.configure(text = "Player Already Exists", text_color = "red")
-            return    
+            return None
+
         try:
             new_player = GennedPlayer(inputted_wca_id, EVENT_CODES[self.event_dropdown.get()])
+            return new_player
         except PlayerHasNoResultsError:
             self.wca_id_entry_feedback_label.configure(text = "Player has no results in this event", text_color = "red")
-            return
+            return None
 
         except InvalidWCAIDError:
             self.wca_id_entry_feedback_label.configure(text = "WCA ID invalid", text_color = "red")
-            return
+            return None
+    
+    def addPlayerLabel(self, new_player):
 
-        self.wca_id_entry_feedback_label.configure(text = "Input successful", text_color = "green")
-        self.wca_id_entry.delete(0, len(inputted_wca_id))
-        
         new_row = PlayerRowLabel(self.players_frame,
                                  self.players_col_num,
                                  self.players_row_offsety,
@@ -315,3 +353,22 @@ class StartFrame():
         print(new_player.avg)
 
 
+
+    def input_wca_id(self, inputPlayer = None):
+        # Either from importing a player via CSV or manually
+        if inputPlayer is None:
+            inputted_wca_id = self.wca_id_entry.get()
+        else:
+            inputted_wca_id = inputPlayer
+        
+        new_player = self.createPlayer(inputted_wca_id)
+        if new_player is None:
+            return
+
+        self.wca_id_entry_feedback_label.configure(text = "Input successful", text_color = "green")
+        self.wca_id_entry.delete(0, len(inputted_wca_id))
+        self.wca_id_entry_feedback_label.place(relx = 0.5, rely = 0.275, anchor = customtkinter.CENTER)
+
+        
+        self.addPlayerLabel(new_player)
+        

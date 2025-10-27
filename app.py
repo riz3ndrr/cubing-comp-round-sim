@@ -7,6 +7,8 @@ from player import Player, UserPlayer, GennedPlayer
 from game_frame import PlayerGameRow, GameFrame
 from start_frame import StartFrame, PlayerRowLabel
 
+import csv
+
 
 
 customtkinter.set_appearance_mode("System")  # Modes: system (default), light, dark
@@ -22,7 +24,7 @@ class App(customtkinter.CTk):
         super().__init__()
         self.geometry("1000x1000")
 
-        self.startFrame = StartFrame(self, self.switchFrame)
+        self.startFrame = StartFrame(self, self.switchFrame, 'players.csv')
         self.gameFrame = None 
 
         self.players = None
@@ -30,6 +32,7 @@ class App(customtkinter.CTk):
         self.currFrame = self.startFrame
         self.frames = [self.gameFrame, self.startFrame]
         self.bind('<Key>', self.currFrame.processUserKeyInput)
+
 
 
     def switchFrame(self):
@@ -52,5 +55,6 @@ class App(customtkinter.CTk):
     def helper_func(self, key):
         self.currFrame.processUserKeyInput()
 
-app = App()
-app.mainloop()
+if __name__ == "__main__":
+    app = App()
+    app.mainloop()
