@@ -18,7 +18,7 @@ You can install the necessary packages by running this command in your terminal:
 
 ### Run in terminal
 
-Simply run the following command in your terminal
+Simply ensure you're in the src/ directory and  run the following command in your terminal
 
 `python3 app.py`
 
@@ -44,17 +44,12 @@ Simply run the following command in your terminal
 |--------------- | --------------- |
 | Enter   | Either enters the inputted WCA ID or your time   |
 | +   | Starts the round from the start screen  |
-| C or c   | Goes back to the start screen from the round screen to change competitors|
-| R or r  | Restarts the round   |
+| [ | Opens a CSV file to import players|
+| ] | Saves the inputted players to a CSV file |
+| C  | Goes back to the start screen from the round screen to change competitors|
+| R | Restarts the round   |
 | Up/Down Arrow | Changes the chosen event |
 
 ## Acknowledgements
 
 This app relies on the WCA Rest API made by Robin Ingelbrecht for simulating player times.
-
-## To-Do
-
-- Correctly display scrambles regardless of events (e.g., clock scrambles are cropped)
-- Be able to edit times
-- General UI tweaks
-- Have a keyboard shortcut for some of our buttons such as starting a round

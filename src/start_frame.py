@@ -332,9 +332,11 @@ class StartFrame():
             self.changeEventChoice(1)
             self.clear_players()
         elif key.keysym == "bracketleft":
+            self.clearEntryText()
             self.importPlayerFile()
         elif key.keysym == "bracketright":
             self.exportPlayers()
+            self.clearEntryText()
 
 
     def createPlayer(self, inputted_wca_id):
