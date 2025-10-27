@@ -224,29 +224,24 @@ class StartFrame():
                                                     width = BOTTOM_BUTTON_WIDTH, height = BUTTON_BUTTON_HEIGHT, font = ("TkDefaultFont", 20))
         self.start_button.place(relx = 0.5, rely = 0.95, anchor = customtkinter.CENTER)
 
-        self.export_players_button = customtkinter.CTkButton(master = self.frame, text = "Export to CSV", command = self.exportPlayers,
+        self.export_players_button = customtkinter.CTkButton(master = self.frame, text = "Export Players (])", command = self.exportPlayers,
                                                              width = BOTTOM_BUTTON_WIDTH, height = BUTTON_BUTTON_HEIGHT,
                                                              font = ("TkDefaultFont", 20))
         self.export_players_button.place(relx = 0.825, rely = 0.95, anchor = customtkinter.CENTER)
         
-        self.csv_filename = csv_filename
+       # self.csv_filename = csv_filename
         
-        self.import_players_button = customtkinter.CTkButton(master = self.frame, text = "Import from CSV", command = self.importPlayers,
+        self.import_players_button = customtkinter.CTkButton(master = self.frame, text = "Import Players ([)", command = self.importPlayerFile,
                                                              width = BOTTOM_BUTTON_WIDTH, height = BUTTON_BUTTON_HEIGHT, font = ("TkDefaultFont", 20))
         self.import_players_button.place(relx = 0.175, rely = 0.95, anchor = customtkinter.CENTER)
+    
 
-    def exportPlayers(self):
-        players_wca_ids = list([player.wca_id] for player in self.players.keys())
-        with open(self.csv_filename, 'w') as players_csv:
-            csvwriter = csv.writer(players_csv)
-            csvwriter.writerows(players_wca_ids)
-
-
-    def importPlayers(self):
-        wca_ids = []
-        #TODO: HANDLE CASE WHERE FILE DOES NOT EXIST
-        try:
-            with open(self.csv_filename, 'r') as players_csv:
+    def importPlayerFile(self):
+        filename = customtkinter.filedialog.askopenfilename(title = "Choose a player .csv file", initialdir = "../players",
+                                                            filetypes = [("CSV Files", "*.csv")])
+        if filename:
+            wca_ids = [] 
+            with open(filename, 'r') as players_csv:
                 csvreader = csv.reader(players_csv)
                 #fields = next(csvreader)
                 for wca_id in csvreader:
@@ -261,14 +256,23 @@ class StartFrame():
 
             if len(failed_imports) != 0:
                 self.popup = importFailedPopup(failed_imports)
-        except FileNotFoundError:
-        #TODO: properly place the label
-            #self.wca_id_entry_feedback_label.configure(text = "File not found", text_color = "red")
-            print("File doesn't exist")
+   
+    def exportPlayers(self):
+        
+        filename = customtkinter.filedialog.asksaveasfilename(title = "Choose file to save to", initialdir = "../players",
+                                                            filetypes = [("CSV Files", "*.csv")])
+        if filename:
+            try:
+                players_wca_ids = list([player.wca_id] for player in self.players.keys())
+                with open(filename, 'w') as players_csv:
+                    csvwriter = csv.writer(players_csv)
+                    csvwriter.writerows(players_wca_ids)
+            except OSError as e:
+                print(f"Error saving file: {e}")
 
     def clearEntryText(self):
         self.wca_id_entry.delete(0, len(self.wca_id_entry.get()))
-
+                                                                                        
     
     def changeEventChoice(self, shift):
         curr_event_index = list(EVENT_CODES.keys()).index(self.event)
@@ -317,21 +321,20 @@ class StartFrame():
         return False
     
     def processUserKeyInput(self, key):
-        ENTER_KEYCODE = 36
-        PLUS_KEYCODE = 21
-        UP_KEYCODE = 111
-        DOWN_KEYCODE = 116
-        print(key)
-        if key.keycode == ENTER_KEYCODE:
+        if key.keysym == "Return":
             self.input_wca_id()
-        elif key.keycode == PLUS_KEYCODE:
+        elif key.keysym == "plus":
             self.swtich_frame_func()
-        elif key.keycode == UP_KEYCODE:
+        elif key.keysym == "Up":
             self.changeEventChoice(-1) 
             self.clear_players()
-        elif key.keycode == DOWN_KEYCODE:
+        elif key.keysym == "Down":
             self.changeEventChoice(1)
             self.clear_players()
+        elif key.keysym == "bracketleft":
+            self.importPlayerFile()
+        elif key.keysym == "bracketright":
+            self.exportPlayers()
 
 
     def createPlayer(self, inputted_wca_id):

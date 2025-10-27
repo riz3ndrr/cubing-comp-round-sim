@@ -199,17 +199,12 @@ class GameFrame():
         self.solve_num = 0
 
     def processUserKeyInput(self, key):
-        ENTER_KEYSYM = 36
-        R = 27
-        C = 54
-        print(key)
-        if key.keycode == ENTER_KEYSYM and self.solve_num <= 4:
+        if key.keysym == "Return" and self.solve_num <= 4:
             self.processUserTimeInput()
-        elif key.keycode == R:
+        elif key.keysym == "R":
             self.resetRound()
             self.time_input_label.delete(0, len(self.time_input_label.get()))
-
-        elif key.keycode == C:
+        elif key.keysym == "C":
             self.switchFrameFunc()
         
     
