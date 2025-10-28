@@ -53,3 +53,4 @@ Simply ensure you're in the src/ directory and  run the following command in you
 ## Acknowledgements
 
 This app relies on the WCA Rest API made by Robin Ingelbrecht for simulating player times.
+The 'cherry' theme was made by a13xe [github repo](https://github.com/a13xe/CTkThemesPack?tab=readme-ov-file)
