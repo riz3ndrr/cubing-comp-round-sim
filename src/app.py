@@ -11,8 +11,8 @@ import csv
 
 
 
-customtkinter.set_appearance_mode("System")  # Modes: system (default), light, dark
-customtkinter.set_default_color_theme("blue")  # Themes: blue (default), dark-blue, green
+customtkinter.set_appearance_mode("Light")  # Modes: "System" (standard), "Dark", "Light"
+customtkinter.set_default_color_theme("themes/cherry.json")  # Modes: system (default), light, dark
 
 
 DNF = 999

@@ -116,7 +116,7 @@ class GameFrame():
         self.scramble_func = EVENT_INFO[event][0]
 
         ## PLAYER CONTAINER
-        self.players_container = customtkinter.CTkScrollableFrame(master = self.frame, width = 850, height = 700, fg_color = "#f0f0f0")
+        self.players_container = customtkinter.CTkScrollableFrame(master = self.frame, width = 850, height = 700)
         self.players_container.place(relx = 0.5, rely = 0.65, anchor = customtkinter.CENTER)
 
         ## DISPLAY PLAYER STATS 

@@ -29,13 +29,12 @@ EVENT_CODES = {
 class PlayerRowLabel():
     ## TODO MAKE THIS EFFFICIENT
     def __init__(self, root, x, y, remove_player_func, player):
-        self.container = customtkinter.CTkFrame(root, width=450, height=200, fg_color = "#ffffff", border_color = "grey", border_width = 1)
+        self.container = customtkinter.CTkFrame(root, width=450, height=200, border_color = "grey", border_width = 1)
         self.container.grid(row = y, column = x, sticky = "", padx = 5, pady=10)
         #self.container.grid_propagate(False)
         self.player = player
         self.player_wca_label = customtkinter.CTkLabel(self.container,
                                                     text = player.wca_id,
-                                                    text_color = "grey",
                                                     font = ("TkDefaultFont", 17))
         NAME_DISPLAY_LENGTH = 16
         display_name = player.name
@@ -55,12 +54,10 @@ class PlayerRowLabel():
         ## PR AVG LABELS
         self.pr_avg_header = customtkinter.CTkLabel(self.container,
                                                     text = "PR Average:",
-                                                    text_color = "grey",
                                                     font = ("TkDefaultFont", 17))
 
         self.pr_avg_label = customtkinter.CTkLabel(self.container,
                                                     text = player.pr_avg,
-                                                    text_color = "black",
                                                     font = ("TkDefaultFont", 19))
 
         self.pr_avg_header.grid(row = 1, column = 0, sticky = '', pady = 2, padx = 4)
@@ -69,12 +66,10 @@ class PlayerRowLabel():
         ## PR SINGLE LABELS
         self.pr_sin_header = customtkinter.CTkLabel(self.container,
                                                     text = "PR Single:",
-                                                    text_color = "grey",
                                                     font = ("TkDefaultFont", 17))
 
         self.pr_sin_label = customtkinter.CTkLabel(self.container,
                                                     text = player.pr_sin,
-                                                    text_color = "black",
                                                     font = ("TkDefaultFont", 19))
             
         self.pr_sin_header.grid(row = 3, column = 0, sticky = '', pady = 2, padx = 4)
@@ -84,13 +79,11 @@ class PlayerRowLabel():
         ## WORLD RANK LABELS
         self.wr_header = customtkinter.CTkLabel(self.container,
                                                     text = "World Ranking:",
-                                                    text_color = "grey",
                                                     font = ("TkDefaultFont", 17),
                                                     width = 70)
 
         self.wr_label = customtkinter.CTkLabel(self.container,
                                                     text = player.rank,
-                                                    text_color = "black",
                                                     font = ("TkDefaultFont", 19),
                                                     width = 70)
      
@@ -100,13 +93,11 @@ class PlayerRowLabel():
         ## COUNTRY LABELS
         self.country_header = customtkinter.CTkLabel(self.container,
                                                     text = "Representing:    ",
-                                                    text_color = "grey",
                                                     font = ("TkDefaultFont", 17),
                                                     width = 70)
 
         self.country_label = customtkinter.CTkLabel(self.container,
                                                     text = player.country,
-                                                    text_color = "black",
                                                     font = ("TkDefaultFont", 19),
                                                     width = 100)
      
@@ -116,13 +107,11 @@ class PlayerRowLabel():
         ## RECENT RESULTS LABELS
         self.recent_results_header = customtkinter.CTkLabel(self.container,
                                                             text = "Recent Mo50:",
-                                                    text_color = "grey",
                                                     font = ("TkDefaultFont", 17),
                                                     width = 70)
 
         self.recent_results_label = customtkinter.CTkLabel(self.container,
                                                     text = f"{player.mo50_recent:.2f}",
-                                                    text_color = "black",
                                                     font = ("TkDefaultFont", 19),
                                                     width = 100)
      
@@ -161,18 +150,16 @@ class importFailedPopup(customtkinter.CTkToplevel):
 
 class StartFrame():
     def __init__(self, root, swtich_frame_func, csv_filename):
-        self.frame = customtkinter.CTkFrame(master = root, width = 1000, height = 1000, fg_color="white")
+        self.frame = customtkinter.CTkFrame(master = root, width = 1000, height = 1000)
         #self.frame.pack(expand = True)
         self.app_label = customtkinter.CTkLabel(self.frame, 
                                         text = "WCA Competition Round Simulator",
-                                        fg_color = "transparent",
                                         font = ("TkDefaultFont", 35))
         self.app_label.place(relx = 0.5, rely = 0.05, anchor=customtkinter.CENTER)
 
         # ADD COMPETITOR
         self.subtitle1 = customtkinter.CTkLabel(self.frame,
                                         text = "Add Competitor",
-                                        fg_color = "transparent",
                                         font = ("TkDefaultFont", 25))
         self.subtitle1.place(relx = 0.2, rely = 0.185, anchor = customtkinter.CENTER)
 
@@ -193,7 +180,6 @@ class StartFrame():
         ## CONFIGURE EVENT
         self.event_label = customtkinter.CTkLabel(self.frame, 
                                         text = "Event: ",
-                                        fg_color = "transparent",
                                         font = ("TkDefaultFont", 25))
         self.event_label.place(relx = 0.6, rely = 0.185, anchor=customtkinter.CENTER)
 
@@ -209,7 +195,7 @@ class StartFrame():
         self.players_frame = customtkinter.CTkScrollableFrame(self.frame, width=900, height=600)
         self.players_frame.grid_columnconfigure(0, weight = 0)
         self.players_frame.place(relx=0.5, rely=0.60, anchor = customtkinter.CENTER)
-        self.players_frame_header = customtkinter.CTkLabel(self.frame, text = "Competitors", fg_color = "transparent", font = ("TkDefaultFont", 30))
+        self.players_frame_header = customtkinter.CTkLabel(self.frame, text = "Competitors", font = ("TkDefaultFont", 30))
         self.players_frame_header.place(relx = 0.1, rely = 0.25)
 
         self.players = {}
