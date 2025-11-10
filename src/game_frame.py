@@ -38,6 +38,10 @@ EVENT_INFO = {
 
 DNF = 999
 
+GAME = 'game'
+START = 'start'
+STAT = 'stat'
+
 class PlayerGameRow():
     def __init__(self, root, x, y, player):
         self.player = player
@@ -175,7 +179,8 @@ class GameFrame():
 
             ## SWITCH FRAMES 
         self.switchFrameFunc = switchFrameFunc
-        self.switch_frame_button = customtkinter.CTkButton(master = self.frame, text = "Change Competitors (C)", command = self.switchFrameFunc, width = 200, 
+        self.switch_frame_button = customtkinter.CTkButton(master = self.frame, text = "Change Competitors (C)", 
+                                                           command = lambda: self.switchFrameFunc(START), width = 200, 
                                                            height = 40)
         self.switch_frame_button.place(relx = 0.6, rely = user_input_y + 0.05, anchor = customtkinter.CENTER)
 
@@ -205,7 +210,7 @@ class GameFrame():
             self.resetRound()
             self.time_input_label.delete(0, len(self.time_input_label.get()))
         elif key.keysym == "C":
-            self.switchFrameFunc()
+            self.switchFrameFunc(START)
         
     
     def processUserTimeInput(self):

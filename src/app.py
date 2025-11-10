@@ -12,11 +12,13 @@ import csv
 
 
 customtkinter.set_appearance_mode("Light")  # Modes: "System" (standard), "Dark", "Light"
-customtkinter.set_default_color_theme("themes/cherry.json")  # Modes: system (default), light, dark
-
+#customtkinter.set_default_color_theme("themes/cherry.json")  # Modes: system (default), light, dark
+customtkinter.set_default_color_theme("dark-blue")
 
 DNF = 999
-
+GAME = 'game'
+START = 'start'
+STAT = 'stat'
 
 
 class App(customtkinter.CTk):
@@ -35,15 +37,15 @@ class App(customtkinter.CTk):
 
 
 
-    def switchFrame(self):
-        if isinstance(self.currFrame, StartFrame):
+    def switchFrame(self, chosen_frame):
+        if chosen_frame == GAME:
             self.startFrame.frame.pack_forget()
             self.players = list(self.startFrame.players.keys())
             self.gameFrame = GameFrame(self, self.players, self.switchFrame, self.startFrame.event)
             self.gameFrame.frame.pack(expand = True)
             self.currFrame = self.gameFrame
 
-        elif isinstance(self.currFrame, GameFrame):
+        elif chosen_frame == START:
             #self.bind('<Key>', self.startFrame.recvUserKeyInput)
             self.gameFrame.frame.pack_forget()
             self.startFrame.frame.pack(expand = True)

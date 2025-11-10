@@ -24,7 +24,7 @@ EVENT_CODES = {
     "5x5x5 Blindfolded": "555bf",
 }
 
-
+GAME = 'game'
 
 class PlayerRowLabel():
     ## TODO MAKE THIS EFFFICIENT
@@ -149,7 +149,7 @@ class importFailedPopup(customtkinter.CTkToplevel):
 
 
 class StartFrame():
-    def __init__(self, root, swtich_frame_func, csv_filename):
+    def __init__(self, root, switch_frame_func, csv_filename):
         self.frame = customtkinter.CTkFrame(master = root, width = 1000, height = 1000)
         #self.frame.pack(expand = True)
         self.app_label = customtkinter.CTkLabel(self.frame, 
@@ -190,6 +190,9 @@ class StartFrame():
         self.event_dropdown.place(relx=0.55, rely = 0.21)
         self.event = list(EVENT_CODES.keys())[0]
 
+        ## VIEW STATS 
+        #self.view_stat_button = customtkinter.CTkButton(master = self.frame, text = "View Stats", command =self.sw)
+
         
         ## FRAME / COMPETITORS CONTAINER ##
         self.players_frame = customtkinter.CTkScrollableFrame(self.frame, width=900, height=600)
@@ -205,8 +208,9 @@ class StartFrame():
         BOTTOM_BUTTON_WIDTH = 280 
         BUTTON_BUTTON_HEIGHT = 50
 
-        self.swtich_frame_func = swtich_frame_func
-        self.start_button = customtkinter.CTkButton(master = self.frame, text = "Start (+)", command = self.swtich_frame_func,
+        self.switch_frame_func = switch_frame_func
+        self.start_button = customtkinter.CTkButton(master = self.frame, text = "Start (+)", 
+                                                    command = lambda: self.switch_frame_func(GAME),
                                                     width = BOTTOM_BUTTON_WIDTH, height = BUTTON_BUTTON_HEIGHT, font = ("TkDefaultFont", 20))
         self.start_button.place(relx = 0.5, rely = 0.95, anchor = customtkinter.CENTER)
 
@@ -310,7 +314,7 @@ class StartFrame():
         if key.keysym == "Return":
             self.input_wca_id()
         elif key.keysym == "plus":
-            self.swtich_frame_func()
+            self.switch_frame_func(GAME)
         elif key.keysym == "Up":
             self.changeEventChoice(-1) 
             self.clear_players()
