@@ -9,7 +9,7 @@ DIR2 = '.csv'
 
 class StatFrame():
     def __init__(self, root, switch_frame_func, event):
-        self.frame = customtkinter.CTkFrame(root, width = 1000, height = 1000)
+        self.frame = customtkinter.CTkFrame(root, width = 1000, height = 1000, fg_color = "white")
         self.header = customtkinter.CTkLabel(self.frame, text = f"Player stats for {event}",
                                              font = ("TkDefaultFont", 40))
         self.event = event
@@ -20,39 +20,68 @@ class StatFrame():
 
         filename = DIR1 + event + DIR2
         self.data_frame = pd.read_csv(filename)
-                
 
-        ## SWITCH BETWEEN SHOWING SINGLE AND AVERAGE         
-        self.showing_sin_avg = customtkinter.StringVar(value = "sin")
-        self.switch_sin_avg_widget = customtkinter.CTkSwitch(self.frame, text = "Showing Best Singles",
-                                                        command = self.toggleTopResults,
-                                                        variable = self.showing_sin_avg, onvalue = "sin", offvalue ="avg",
-                                                        switch_width = 60, switch_height = 30)
-        
-        self.switch_sin_avg_widget.place(relx = 0.65, rely = 0.8)
         self.results_header = customtkinter.CTkLabel(self.frame, text = "Recent 50 Times:",
-                                                     font = ("TkDefaultFont", 25))
+                                                     font = ("TkDefaultFont", 30))
         self.results_header.place(relx = 0.1, rely = 0.425)
-        self.top_result_container = customtkinter.CTkFrame(self.frame, width = 300, height = 500)
+        self.top_result_container = customtkinter.CTkFrame(self.frame, width = 300, height = 500,
+                                                           fg_color = "transparent")
 
-       
+        self.showSummaryStats() 
 
         ## DISPLAY TIMES 
         self.displayTopResults()
         self.showGraph()
-
-    def toggleTopResults(self):
-        if self.showing_sin_avg.get() == "sin":
-            self.switch_sin_avg_widget.configure(text = "Showing Best Singles")
+    def genSuffix(self, number):
+        conversion = {0 : "th",
+                      1 : "st",
+                      2 : "nd",
+                      3 : "rd",
+                      4 : "th",
+                      5 : "th",
+                      6 : "th",
+                      7 : "th",
+                      8 : "th",
+                      9 : "th"}
+        if number in conversion:
+            return conversion[number]
+        if (number % 100) >= 11 and (number % 100) <= 19:
+            return "th"
         else:
-            self.switch_sin_avg_widget.configure(text = "Showing Best Averages")
-        self.displayTopResults()
+            return conversion[number % 10]
+    def showSummaryStats(self):
+        results = self.data_frame.iloc[:-2]
+
+        # PLACING RESULTS
+        placing_results = results[["placing", "num_ppl"]].mean()
+        avg_placing = round(placing_results["placing"])
+        avg_num_ppl = round(placing_results["num_ppl"]) 
         
+        self.placing_header = customtkinter.CTkLabel(self.frame, text = "Average Placing", font = ("TkDefaultFont", 30))
+        self.placing_label = customtkinter.CTkLabel(self.frame, text = f"{avg_placing}{self.genSuffix(avg_placing)} out of {avg_num_ppl} people", font = ("TkDefaultFont", 25))
+        self.placing_header.place(relx = 0.1, rely = 0.125)
+        self.placing_label.place(relx = 0.125, rely = 0.175)
+
+        # MEAN RESULTS
+        time_cols = ["t1", "t2", "t3", "t4", "t5"]
+        mean_time = results[time_cols].melt()["value"].mean() 
+        self.mean_time_header = customtkinter.CTkLabel(self.frame, text = "Average Time", font = ("TkDefaultFont", 30))
+        self.mean_time_label = customtkinter.CTkLabel(self.frame, text = f"{mean_time:.2f}s", font = ("TkDefaultFont", 25))
+        self.mean_time_header.place(relx = 0.1 + 0.30, rely = 0.125)
+        self.mean_time_label.place(relx = 0.125 + 0.30, rely = 0.175)
+        
+
+        mean_avg = results["average"].tail(10).mean() 
+        self.mean_avg_header = customtkinter.CTkLabel(self.frame, text = "Mo10Ao5", font = ("TkDefaultFont", 30))
+        self.mean_avg_label = customtkinter.CTkLabel(self.frame, text = f"{mean_avg:.2f}s", font = ("TkDefaultFont", 25))
+        self.mean_avg_header.place(relx = 0.1 + 0.55, rely = 0.125)
+        self.mean_avg_label.place(relx = 0.125 + 0.55, rely = 0.175)
+
             
     def showGraph(self):
         # GET ONLY 50 MOST RECENT SOLVES
         results = self.data_frame.iloc[:-2]
-        time_cols = [c for c in self.data_frame.columns if c.startswith("t")]
+        time_cols = ["t1", "t2", "t3", "t4", "t5"]
         times = results[time_cols].melt()
         times = times.tail(50)
 
@@ -79,23 +108,27 @@ class StatFrame():
         results = self.data_frame.iloc[:-2]
         
         #print(times)
-        if self.showing_sin_avg.get() == "sin":
-            time_cols = [c for c in self.data_frame.columns if c.startswith("t")]
-            times = results[time_cols].melt()
-            fastest = times["value"].nsmallest(5)
-            header_txt = "Singles"
-        else: 
-            avgs = results["average"]
-            fastest = avgs.nsmallest(5)
-            header_txt = "Averages"
-
-        self.result_header = customtkinter.CTkLabel(self.top_result_container, text = f"Fastest {header_txt}", font = ("TkDefaultFont", 30),
+        time_cols =["t1", "t2", "t3", "t4", "t5"]
+        times = results[time_cols].melt()
+        fastest = times["value"].nsmallest(5)
+        self.singles_header = customtkinter.CTkLabel(self.top_result_container, text = f"Fastest Singles", font = ("TkDefaultFont", 30),
                                                     width = 300)
-        self.result_header.pack()
+        self.singles_header.pack()
         for i, time in enumerate(fastest):
             label = customtkinter.CTkLabel(self.top_result_container, text = f"{i + 1}: {time}",  font = ("TkDefaultFont", 25),
                                            anchor = "w", justify = "left", width = 130) 
             label.pack() 
+
+        self.mean_header = customtkinter.CTkLabel(self.top_result_container, text = f"Fastest Averages", font = ("TkDefaultFont", 30),
+                                                    width = 300)
+        self.mean_header.pack()
+        avgs = results["average"]
+        fastest = avgs.nsmallest(5)
+        for i, time in enumerate(fastest):
+            label = customtkinter.CTkLabel(self.top_result_container, text = f"{i + 1}: {time}",  font = ("TkDefaultFont", 25),
+                                           anchor = "w", justify = "left", width = 130) 
+            label.pack() 
+
         self.top_result_container.place(relx = 0.65, rely = 0.5)
         
         
