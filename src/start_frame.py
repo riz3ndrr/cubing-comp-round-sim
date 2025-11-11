@@ -2,6 +2,7 @@ import customtkinter
 
 from player import Player, GennedPlayer, PlayerHasNoResultsError, InvalidWCAIDError
 import csv
+from constants import GAME, START, STAT
 
 
 # NOTE: NO MULTI BLIND
@@ -24,9 +25,6 @@ EVENT_CODES = {
     "5x5x5 Blindfolded": "555bf",
 }
 
-GAME = 'game'
-STAT = 'stat'
-START = 'start'
 
 class PlayerRowLabel():
     ## TODO MAKE THIS EFFFICIENT

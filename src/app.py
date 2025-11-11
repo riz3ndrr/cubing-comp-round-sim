@@ -7,7 +7,7 @@ from player import Player, UserPlayer, GennedPlayer
 from game_frame import PlayerGameRow, GameFrame
 from start_frame import StartFrame, PlayerRowLabel
 from stat_frame import StatFrame
-
+from constants import GAME, START, STAT
 import csv
 
 
@@ -15,11 +15,6 @@ import csv
 customtkinter.set_appearance_mode("Light")  # Modes: "System" (standard), "Dark", "Light"
 #customtkinter.set_default_color_theme("themes/cherry.json")  # Modes: system (default), light, dark
 customtkinter.set_default_color_theme("dark-blue")
-
-DNF = 999
-GAME = 'game'
-START = 'start'
-STAT = 'stat'
 
 
 class App(customtkinter.CTk):

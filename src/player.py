@@ -1,5 +1,7 @@
 from numpy import random
+import csv
 import requests
+import pandas as pd
 NUM_RESULTS_TO_COLLECT = 50
 DNF = 999
 INVALID_TIMES = [-1, -2, 0]
@@ -59,7 +61,14 @@ class UserPlayer(Player):
         else:
             self.avg = (total - fastest - slowest) / (3)
 
-
+    def updateCSV(self, event, placing, num_ppl):
+        filename = f"../data/{event}.csv"
+        data_to_append = {f"t{x + 1}" : self.times[x] for x in range(len(self.times))}
+        data_to_append["average"] = self.avg
+        data_to_append["placing"] = placing 
+        data_to_append["num_ppl"] = num_ppl
+        df = pd.DataFrame([data_to_append])
+        df.to_csv(filename, mode = 'a', index = False, header = False)
 
 class GennedPlayer(Player):
     def __init__(self, wca_id, event):

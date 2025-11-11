@@ -15,6 +15,8 @@ from cubescrambler import (
     clockScrambler
 )
 
+from constants import GAME, START
+
 # Tuple of the form (scramble function, font size)
 EVENT_INFO = {
     "2x2x2 Cube": (scrambler222.get_WCA_scramble, 25),
@@ -37,10 +39,6 @@ EVENT_INFO = {
 }
 
 DNF = 999
-
-GAME = 'game'
-START = 'start'
-STAT = 'stat'
 
 class PlayerGameRow():
     def __init__(self, root, x, y, player):
@@ -117,7 +115,9 @@ class GameFrame():
         #self.label = customtkinter.CTkLabel(self.frame, text = "WADSHASDHSAJD")
         #self.label.place(relx = 0.5, rely = 0.1, anchor = customtkinter.CENTER)
         self.solve_num = 0
-        self.scramble_func = EVENT_INFO[event][0]
+        self.event = event
+        self.scramble_func = EVENT_INFO[self.event][0]
+
 
         ## PLAYER CONTAINER
         self.players_container = customtkinter.CTkScrollableFrame(master = self.frame, width = 850, height = 700)
@@ -156,7 +156,7 @@ class GameFrame():
 
         ## DISPLAY SCRAMBLE 
         self.scramble_list = []
-        scramble_font_size = EVENT_INFO[event][1]
+        scramble_font_size = EVENT_INFO[self.event][1]
         self.scramble_label = customtkinter.CTkLabel(master = self.frame, text = "", font = ("TkDefaultFont", scramble_font_size),
                                                      wraplength = 800, justify = customtkinter.CENTER, width = 700)
         self.generateScramble()
@@ -190,9 +190,11 @@ class GameFrame():
 
 
     def resetRound(self):
+        if len(self.user.times) == 5:
+            self.user.updateCSV(self.event, self.getPlacing() ,len(self.players))
+
         self.time_input_label.configure(state = "normal")
         self.enter_time_button.configure(state = "normal")
-
         for player, player_row in self.players.items():
             player_row.resetLabels()
             if (isinstance(player, UserPlayer)):
@@ -211,7 +213,12 @@ class GameFrame():
             self.time_input_label.delete(0, len(self.time_input_label.get()))
         elif key.keysym == "C":
             self.switchFrameFunc(START)
-        
+
+    def getPlacing(self):
+        for i, player in enumerate(self.players):
+            if isinstance(player, UserPlayer):
+                return i + 1
+        return None
     
     def processUserTimeInput(self):
         try:
@@ -239,7 +246,6 @@ class GameFrame():
              
             
     def generateScramble(self):
-        # TODO: DISPLAY SOME EVENTS CORRECTLY
         self.scramble_label.configure(text="Generating scrambles...")
         self.scramble_list = []
         def showFirstScramble():
