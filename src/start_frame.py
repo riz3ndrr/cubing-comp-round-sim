@@ -25,6 +25,8 @@ EVENT_CODES = {
 }
 
 GAME = 'game'
+STAT = 'stat'
+START = 'start'
 
 class PlayerRowLabel():
     ## TODO MAKE THIS EFFFICIENT
@@ -191,9 +193,11 @@ class StartFrame():
         self.event = list(EVENT_CODES.keys())[0]
 
         ## VIEW STATS 
-        #self.view_stat_button = customtkinter.CTkButton(master = self.frame, text = "View Stats", command =self.sw)
+        self.view_stat_button = customtkinter.CTkButton(master = self.frame, text = "View Stats",
+                                                        command = lambda: switch_frame_func(STAT))
 
-        
+        self.view_stat_button.place(relx = 0.8, rely = 0.21) 
+
         ## FRAME / COMPETITORS CONTAINER ##
         self.players_frame = customtkinter.CTkScrollableFrame(self.frame, width=900, height=600)
         self.players_frame.grid_columnconfigure(0, weight = 0)
@@ -318,6 +322,8 @@ class StartFrame():
         elif key.keysym == "Up":
             self.changeEventChoice(-1) 
             self.clear_players()
+        elif key.keysym == "minus":
+            self.switch_frame_func(STAT)
         elif key.keysym == "Down":
             self.changeEventChoice(1)
             self.clear_players()
