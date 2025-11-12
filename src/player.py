@@ -2,6 +2,7 @@ from numpy import random
 import csv
 import requests
 import pandas as pd
+import os
 NUM_RESULTS_TO_COLLECT = 50
 DNF = 999
 INVALID_TIMES = [-1, -2, 0]
@@ -63,12 +64,28 @@ class UserPlayer(Player):
 
     def updateCSV(self, event, placing, num_ppl):
         filename = f"../data/{event}.csv"
-        data_to_append = {f"t{x + 1}" : self.times[x] for x in range(len(self.times))}
-        data_to_append["average"] = self.avg
-        data_to_append["placing"] = placing 
-        data_to_append["num_ppl"] = num_ppl
-        df = pd.DataFrame([data_to_append])
-        df.to_csv(filename, mode = 'a', index = False, header = False)
+        if os.path.exists(filename) is False:
+            with open(filename, 'w') as players_csv:
+                headers = ["t1", "t2", "t3", "t4", "t5",
+                           "average", "placing", "num_ppl"]
+                csvwriter = csv.writer(players_csv)
+                csvwriter.writerow(headers)
+        with open(filename, 'a') as players_csv:
+            csvwriter = csv.writer(players_csv)
+
+
+            data_to_append = [self.times[x] for x in range(len(self.times))]
+            data_to_append.append(self.avg)
+            data_to_append.append(placing)
+            data_to_append.append(num_ppl)
+            csvwriter.writerow(data_to_append)
+
+       # data_to_append = {f"t{x + 1}" : self.times[x] for x in range(len(self.times))}
+       # data_to_append["average"] = self.avg
+       # data_to_append["placing"] = placing 
+       # data_to_append["num_ppl"] = num_ppl
+       # df = pd.DataFrame([data_to_append])
+       # df.to_csv(filename, mode = 'a', index = False, header = False)
 
 class GennedPlayer(Player):
     def __init__(self, wca_id, event):
