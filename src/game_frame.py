@@ -188,7 +188,6 @@ class GameFrame():
         self.error_label = customtkinter.CTkLabel(master = self.frame, text = "Please correctly input a time", text_color = "red")
         #root.bind('<Key>', self.enterUserTime)
 
-
     def resetRound(self):
         if len(self.user.times) == 5:
             self.user.updateCSV(self.event, self.getPlacing() ,len(self.players))
@@ -212,6 +211,8 @@ class GameFrame():
             self.resetRound()
             self.time_input_label.delete(0, len(self.time_input_label.get()))
         elif key.keysym == "C":
+            if len(self.user.times) == 5:
+                self.user.updateCSV(self.event, self.getPlacing() ,len(self.players))
             self.switchFrameFunc(START)
 
     def getPlacing(self):
