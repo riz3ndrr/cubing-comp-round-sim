@@ -16,6 +16,7 @@ from cubescrambler import (
 )
 
 from constants import GAME, START, DNF, MO3_EVENTS
+from helper_functions import convertToReadableTime, convertTimeStringToSec
 
 # Tuple of the form (scramble function, font size)
 EVENT_INFO = {
@@ -56,20 +57,10 @@ class PlayerGameRow():
 
         self.player_name_label = customtkinter.CTkLabel(root, text = display_name, width = 150, font = ("TkDefaultFont", 20))
         self.player_name_label.grid(row = self.y, column = 1, sticky = "ew", padx = 10, pady = 10)
-        
-        self.player_time_label_0 = customtkinter.CTkLabel(root, text = "#####", font = ("TkDefaultFont", 20))
-        self.player_time_label_1 = customtkinter.CTkLabel(root, text = "#####", font = ("TkDefaultFont", 20))
-        self.player_time_label_2 = customtkinter.CTkLabel(root, text = "#####", font = ("TkDefaultFont", 20))
-        self.player_time_label_3 = customtkinter.CTkLabel(root, text = "#####", font = ("TkDefaultFont", 20))
-        self.player_time_label_4 = customtkinter.CTkLabel(root, text = "#####", font = ("TkDefaultFont", 20))
 
         self.player_avg_label = customtkinter.CTkLabel(root, text = "N/A", font = ("TkDefaultFont", 20))
         self.player_time_labels = [customtkinter.CTkLabel(root, text = "#####", font = ("TkDefaultFont", 20)) for x in range(num_solves)]
-       # self.player_time_labels = [self.player_time_label_0,
-       #                            self.player_time_label_1,
-       #                            self.player_time_label_2,
-       #                            self.player_time_label_3,
-       #                            self.player_time_label_4]
+
         for col_num, time_label in enumerate(self.player_time_labels):
             time_label.grid(row = self.y, column = col_num + 2, sticky = "", padx = 10)
             # STOP FOR MO3 EVENTS
@@ -96,19 +87,19 @@ class PlayerGameRow():
         if time_to_display == DNF:
             label_to_configure.configure(text = "DNF")
         else:
-            label_to_configure.configure(text = f"{time_to_display:.2f}")
+            label_to_configure.configure(text = convertToReadableTime(time_to_display))
 
         if (solve_num == num_solves_in_round - 2):
             if num_solves_in_round == 5:
                 #self.player_avg_label.grid(row = self.y, column = 7, sticky = "", padx = 10)
-                wpa = "DNF" if self.player.wpa == DNF else f"{self.player.wpa:.2f}"
-                self.player_avg_label.configure(text = f"{self.player.bpa:.2f}/{wpa}", text_color = "grey")
+                wpa = "DNF" if self.player.wpa == DNF else convertToReadableTime(self.player.wpa)
+                self.player_avg_label.configure(text = f"{convertToReadableTime(self.player.bpa)}/{wpa}", text_color = "grey")
             else:
                 # Show provisional mean 
                 print("RAHHH")
-                self.player_avg_label.configure(text = f"{self.player.provisionalMean:.2f}", text_color = "grey")
+                self.player_avg_label.configure(text = convertToReadableTime(self.player.provisionalMean), text_color = "grey")
         elif (solve_num == num_solves_in_round - 1):
-            avg = "DNF" if self.player.avg == DNF else f"{self.player.avg:.2f}"
+            avg = "DNF" if self.player.avg == DNF else convertToReadableTime(self.player.avg)
             self.player_avg_label.configure(text = avg, text_color = "black")
 
 
@@ -237,29 +228,30 @@ class GameFrame():
         return None
     
     def processUserTimeInput(self):
-        try:
-            time = self.time_input_label.get()
+        time = self.time_input_label.get()
 
-            if time == 'DNF':
-                self.user.addTime(DNF)
+        if time == 'DNF':
+            self.user.addTime(DNF)
+        else:
+            time = convertTimeStringToSec(time)
+            if time is None:
+                self.error_label.place(relx = 0.5, rely = 0.1, anchor = customtkinter.CENTER)
+                return
+
+            self.user.addTime(time)
+
+        if self.solve_num == (self.num_solves - 1):
+            self.user.generateAvg()
+        elif self.solve_num == (self.num_solves - 2):
+            if self.num_solves == 5:
+                self.user.calcBPAandWPA()
             else:
-                time = float(self.time_input_label.get())
-                self.user.addTime(time)
+                self.user.calcProvisionalMean()
 
-            if self.solve_num == (self.num_solves - 1):
-                self.user.generateAvg()
-            elif self.solve_num == (self.num_solves - 2):
-                if self.num_solves == 5:
-                    self.user.calcBPAandWPA()
-                else:
-                    self.user.calcProvisionalMean()
-
-            self.showNextTime()
-            self.error_label.place_forget()
-            self.time_input_label.delete(0, len(str(time)))
-        except ValueError:
-            self.error_label.place(relx = 0.5, rely = 0.1, anchor = customtkinter.CENTER)
-
+        self.showNextTime()
+        self.error_label.place_forget()
+        self.time_input_label.delete(0, len(str(time)))
+            
 
 
              
