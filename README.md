@@ -53,6 +53,7 @@ Simply ensure you're in the src/ directory and  run the following command in you
 | R | Restarts the round   |
 | Up/Down Arrow | Changes the chosen event |
 | - | Switch between the stat and start screen|
+| D | Deletes all results of a particular event at the stat screen |
 
 ## Acknowledgements
 

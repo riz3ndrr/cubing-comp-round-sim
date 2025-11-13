@@ -17,6 +17,7 @@ from cubescrambler import (
 
 from constants import GAME, START, DNF, MO3_EVENTS
 from helper_functions import convertToReadableTime, convertTimeStringToSec
+from popup import popupFrame
 
 # Tuple of the form (scramble function, font size)
 EVENT_INFO = {
@@ -186,7 +187,10 @@ class GameFrame():
         self.switch_frame_button.place(relx = 0.6, rely = user_input_y + 0.05, anchor = customtkinter.CENTER)
 
         # USER FEEDBACK 
-        self.error_label = customtkinter.CTkLabel(master = self.frame, text = "Please correctly input a time", text_color = "red")
+        
+        self.error_popup = popupFrame(self.frame, "Please correctly input a time", "red", 500, 200)
+       # self.error_label = customtkinter.CTkLabel(master = self.frame, text = "Please correctly input a time", text_color = "red",
+       #                                           font = ("TkDefaultFont", 20))
         #root.bind('<Key>', self.enterUserTime)
     
     def switchFrame(self):
@@ -235,7 +239,8 @@ class GameFrame():
         else:
             time = convertTimeStringToSec(time)
             if time is None:
-                self.error_label.place(relx = 0.5, rely = 0.1, anchor = customtkinter.CENTER)
+                #self.error_label.place(relx = 0.5, rely = 0.15, anchor = customtkinter.CENTER)
+                self.error_popup.place()
                 return
 
             self.user.addTime(time)
@@ -249,7 +254,7 @@ class GameFrame():
                 self.user.calcProvisionalMean()
 
         self.showNextTime()
-        self.error_label.place_forget()
+        self.error_popup.forget()
         self.time_input_label.delete(0, len(str(time)))
             
 
