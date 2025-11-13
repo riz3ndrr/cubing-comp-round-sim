@@ -55,16 +55,16 @@ class StatFrame():
         self.switch_frame_func = switch_frame_func
         self.switch_frame_button = customtkinter.CTkButton(master = self.frame, text = "Main Menu (-)",
                                                            command = lambda: self.switch_frame_func(START),
-                                                           width = 200, height = 50,
+                                                           width = 350, height = 50,
                                                            font = ("TkDefaultFont", 20))
-        self.switch_frame_button.place(relx = 0.75, rely = 0.95)
+        self.switch_frame_button.place(relx = 0.55, rely = 0.9)
         
         # CLEAR DATA WIDGET 
         self.clear_data_button = customtkinter.CTkButton(master = self.frame, text = "Clear Data (D)",
                                                          command = self.clear_data,
-                                                         width = 200, height = 50,
+                                                         width = 350, height = 50,
                                                          font = ("TkDefaultFont", 20))
-        self.clear_data_button.place(relx = 0.3, rely = 0.8)
+        self.clear_data_button.place(relx = 0.1, rely = 0.9)
         
         # STATS
         self.initDataFrame()

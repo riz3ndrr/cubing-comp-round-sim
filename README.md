@@ -38,8 +38,8 @@ Simply ensure you're in the src/ directory and  run the following command in you
 - Player's times are randomly generated via a normal distribution of their last official 98 (non-DNF) WCA times
 - Every generated cuber has the same chance of getting a DNF (as of now is 2%) regardless of their DNF rate in competition
 - Selecting a different event will clear the entered players (i.e., you will have to enter everybody's WCA IDs again)
-- Mo3 hasn't been implemented for certain events
 - FMC results are not proper
+- MBLD is not available
 
 ## Keyboard Shortcuts
 
@@ -52,7 +52,7 @@ Simply ensure you're in the src/ directory and  run the following command in you
 | C  | Goes back to the start screen from the round screen to change competitors|
 | R | Restarts the round   |
 | Up/Down Arrow | Changes the chosen event |
-| - | View the stats (from the start screen)|
+| - | Switch between the stat and start screen|
 
 ## Acknowledgements
 
