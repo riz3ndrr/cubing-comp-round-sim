@@ -5,6 +5,7 @@ import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
 from constants import GAME, START, STAT, MO3_EVENTS, DNF
+from helper_functions import convertToReadableTime
 
 DIR1 = '../data/'
 DIR2 = '.csv'
@@ -147,7 +148,7 @@ class StatFrame():
         if np.isnan(mean_time):
             mean_sin_text = "N/A"
         else:
-            mean_sin_text = f"{mean_time:.2f}"
+            mean_sin_text = convertToReadableTime(mean_time)
         self.mean_time_header = customtkinter.CTkLabel(self.frame, text = "Average Time", font = ("TkDefaultFont", 30))
         self.mean_time_label = customtkinter.CTkLabel(self.frame, text = mean_sin_text, font = ("TkDefaultFont", 25))
         self.mean_time_header.place(relx = 0.1 + 0.30, rely = LABEL_Y)
@@ -158,9 +159,10 @@ class StatFrame():
         if np.isnan(mean_avg):
             mean_avg_text = "N/A"
         else:
-            mean_avg_text= f"{mean_avg:.2f}"
+            mean_avg_text= convertToReadableTime(mean_avg)
         # DISPLAY AT MOST, THE RECENT 10 AVERAGES
-        self.mean_avg_header = customtkinter.CTkLabel(self.frame, text = f"Mo{min(10, len(results))}Ao5", font = ("TkDefaultFont", 30))
+        average_type_text = "Mo3" if self.event in MO3_EVENTS else "Ao5"
+        self.mean_avg_header = customtkinter.CTkLabel(self.frame, text = f"Mo{min(10, len(results))}{average_type_text}", font = ("TkDefaultFont", 30))
         self.mean_avg_label = customtkinter.CTkLabel(self.frame, text = mean_avg_text, font = ("TkDefaultFont", 25))
         self.mean_avg_header.place(relx = 0.1 + 0.55, rely = LABEL_Y)
         self.mean_avg_label.place(relx = 0.125 + 0.55, rely = LABEL_Y + 0.05)
@@ -218,7 +220,7 @@ class StatFrame():
         else:
             fastest = times["value"].nsmallest(5)
             for i, time in enumerate(fastest):
-                label = customtkinter.CTkLabel(self.top_result_container, text = f"{i + 1}: {time:.2f}",  font = ("TkDefaultFont", 25),
+                label = customtkinter.CTkLabel(self.top_result_container, text = f"{i + 1}: {convertToReadableTime(time)}",  font = ("TkDefaultFont", 25),
                                             anchor = "w", justify = "left", width = 130) 
                 label.pack() 
         # DISPLAY AVERAGE / MEANS
@@ -233,7 +235,7 @@ class StatFrame():
             avgs = results["average"]
             fastest = avgs.nsmallest(5)
             for i, time in enumerate(fastest):
-                label = customtkinter.CTkLabel(self.top_result_container, text = f"{i + 1}: {time:.2f}",  font = ("TkDefaultFont", 25),
+                label = customtkinter.CTkLabel(self.top_result_container, text = f"{i + 1}: {convertToReadableTime(time)}",  font = ("TkDefaultFont", 25),
                                             anchor = "w", justify = "left", width = 130) 
                 label.pack() 
         
