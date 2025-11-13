@@ -3,6 +3,7 @@ import customtkinter
 from player import Player, GennedPlayer, PlayerHasNoResultsError, InvalidWCAIDError
 import csv
 from constants import GAME, START, STAT
+from helper_functions import convertToReadableTime
 
 
 # NOTE: NO MULTI BLIND
@@ -57,7 +58,7 @@ class PlayerRowLabel():
                                                     font = ("TkDefaultFont", 17))
 
         self.pr_avg_label = customtkinter.CTkLabel(self.container,
-                                                    text = player.pr_avg,
+                                                    text = convertToReadableTime(player.pr_avg),
                                                     font = ("TkDefaultFont", 19))
 
         self.pr_avg_header.grid(row = 1, column = 0, sticky = '', pady = 2, padx = 4)
@@ -69,7 +70,7 @@ class PlayerRowLabel():
                                                     font = ("TkDefaultFont", 17))
 
         self.pr_sin_label = customtkinter.CTkLabel(self.container,
-                                                    text = player.pr_sin,
+                                                    text = convertToReadableTime(player.pr_sin),
                                                     font = ("TkDefaultFont", 19))
             
         self.pr_sin_header.grid(row = 3, column = 0, sticky = '', pady = 2, padx = 4)
@@ -111,7 +112,7 @@ class PlayerRowLabel():
                                                     width = 70)
 
         self.recent_results_label = customtkinter.CTkLabel(self.container,
-                                                    text = f"{player.mo50_recent:.2f}",
+                                                    text = convertToReadableTime(player.mo50_recent),
                                                     font = ("TkDefaultFont", 19),
                                                     width = 100)
      
@@ -363,9 +364,9 @@ class StartFrame():
             self.players_row_offsety += 1
         
         # For testing purposes
-        print(len(self.players))
-        print(new_player.times)
-        print(new_player.avg)
+        #print(len(self.players))
+        #print(new_player.times)
+        #print(new_player.avg)
 
 
 
