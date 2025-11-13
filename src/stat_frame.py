@@ -4,11 +4,10 @@ import pandas as pd
 import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 from matplotlib.figure import Figure
-from constants import GAME, START, STAT
+from constants import GAME, START, STAT, MO3_EVENTS, DNF
 
 DIR1 = '../data/'
 DIR2 = '.csv'
-DNF = 999
 
 
 EVENT_NAMES = [
@@ -37,6 +36,7 @@ class StatFrame():
         self.header = customtkinter.CTkLabel(self.frame, text = f"Player stats for {event}",
                                              font = ("TkDefaultFont", 40))
         self.event = event
+        self.num_solves = 3 if self.event in MO3_EVENTS else 5
         self.event_dropdown = customtkinter.CTkOptionMenu(self.frame, values = EVENT_NAMES,
                                                           command = self.event_dropdown_callback)
         self.event_dropdown.set(event)
@@ -61,15 +61,18 @@ class StatFrame():
         ## DISPLAY TIMES 
         self.displayTopResults()
         print(self.data_frame)
+
     def initDataFrame(self):
         filename = DIR1 + self.event + DIR2
         try:
             self.data_frame = pd.read_csv(filename)
         except FileNotFoundError:
             print("AHH")
+
             default_data = [
-                ["t1", "t2", "t3", "t4", "t5", "average", "placing", "num_ppl"],
+                [f"t{x + 1}" for x in range(self.num_solves)] + ["average", "placing", "num_ppl"]
             ]
+
             with open(filename, 'w', newline='') as csv_file:
                 writer = csv.writer(csv_file)
                 writer.writerows(default_data)
@@ -78,12 +81,14 @@ class StatFrame():
 
     def event_dropdown_callback(self, new_event):
         self.event = new_event
+        self.num_solves = 3 if self.event in MO3_EVENTS else 5
+
         self.resetStats()
         self.showGraph()
         self.showSummaryStats()
         self.displayTopResults()
         self.header.configure(text = f"Player stats for {self.event}")
-    
+           
     def resetStats(self):
         self.initDataFrame()
         stat_widgets = [self.placing_header, self.placing_label,
@@ -135,7 +140,7 @@ class StatFrame():
         self.placing_label.place(relx = 0.125, rely = LABEL_Y + 0.05)
 
         # MEAN RESULTS
-        time_cols = ["t1", "t2", "t3", "t4", "t5"]
+        time_cols = [f"t{x + 1}" for x in range(self.num_solves)]
         times = (results[time_cols].melt())
         times = times[times.value != DNF]
         mean_time = times["value"].mean()
@@ -164,7 +169,7 @@ class StatFrame():
     def showGraph(self):
         # GET ONLY 50 MOST RECENT SOLVES
         results = self.data_frame
-        time_cols = ["t1", "t2", "t3", "t4", "t5"]
+        time_cols = [f"t{x + 1}" for x in range(self.num_solves)]
         times = results[time_cols].melt()
         NUM_TIMES_TO_DISPLAY = 50
         times = times[times.value != DNF].tail(NUM_TIMES_TO_DISPLAY)
@@ -195,13 +200,13 @@ class StatFrame():
 
 
     def displayTopResults(self): 
-        # CLEAR CHILDREN 
         results = self.data_frame
         
         #print(times)
-        time_cols =["t1", "t2", "t3", "t4", "t5"]
+        time_cols = [f"t{x + 1}" for x in range(self.num_solves)]
         times = results[time_cols].melt()
-
+        
+        # DISPLAY SINGLES
         self.singles_header = customtkinter.CTkLabel(self.top_result_container, text = f"Fastest Singles", font = ("TkDefaultFont", 30),
                                                     width = 300)
         self.singles_header.pack()
@@ -216,7 +221,7 @@ class StatFrame():
                 label = customtkinter.CTkLabel(self.top_result_container, text = f"{i + 1}: {time:.2f}",  font = ("TkDefaultFont", 25),
                                             anchor = "w", justify = "left", width = 130) 
                 label.pack() 
-
+        # DISPLAY AVERAGE / MEANS
         self.mean_header = customtkinter.CTkLabel(self.top_result_container, text = f"Fastest Averages", font = ("TkDefaultFont", 30),
                                                     width = 300)
         self.mean_header.pack()

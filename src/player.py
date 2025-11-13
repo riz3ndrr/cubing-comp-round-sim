@@ -3,8 +3,8 @@ import csv
 import requests
 import pandas as pd
 import os
+from constants import DNF, MO3_EVENTS
 NUM_RESULTS_TO_COLLECT = 50
-DNF = 999
 INVALID_TIMES = [-1, -2, 0]
 
 
@@ -35,15 +35,17 @@ class Player:
         else:
             self.wpa = (sum(times) - min(times)) / 3
         #return bpa, wpa
+    def calcProvisionalMean(self):
+        self.provisionalMean = (self.times[0] + self.times[1]) / 2
 
 class UserPlayer(Player):
-    def __init__(self, name):
+    def __init__(self, name, event):
         self.name = name
         self.avg = None
         self.times = []
         self.wpa = 0 
         self.bpa = 0
-
+        self.event = event
     def addTime(self, new_time):
         self.times.append(new_time)
     
@@ -52,22 +54,25 @@ class UserPlayer(Player):
         for num in self.times:
             if num == DNF:
                 num_dnf += 1
-
         total = sum(self.times)
         fastest = min(self.times)
         slowest = max(self.times)
-
-        if num_dnf > 1:
-            self.avg = DNF
+        if self.event in MO3_EVENTS:
+            if num_dnf > 0:
+                self.avg = DNF 
+            else:
+                self.avg = total / 3 
         else:
-            self.avg = (total - fastest - slowest) / (3)
-
-    def updateCSV(self, event, placing, num_ppl):
-        filename = f"../data/{event}.csv"
+            if num_dnf > 1:
+                self.avg = DNF 
+            else:
+                self.avg = (total - fastest - slowest) / 3
+    def updateCSV(self, placing, num_ppl):
+        filename = f"../data/{self.event}.csv"
         if os.path.exists(filename) is False:
             with open(filename, 'w') as players_csv:
-                headers = ["t1", "t2", "t3", "t4", "t5",
-                           "average", "placing", "num_ppl"]
+                num_times = 3 if self.event in MO3_EVENTS else 5  
+                headers = [f"t{x + 1}" for x in range(num_times)] + ["average", "placing", "num_ppl"]
                 csvwriter = csv.writer(players_csv)
                 csvwriter.writerow(headers)
         with open(filename, 'a') as players_csv:
@@ -105,9 +110,7 @@ class GennedPlayer(Player):
             #TODO MAKE THIS EFFICIENT
             self.mo50_recent = self.calculate_mean_of_50_recent_solves()
             self.calcBPAandWPA()
-
-
-    
+            self.calcProvisionalMean() 
     
     def findAvgStats(self):
         for event_info in self.player_data['rank']['averages']:
@@ -175,7 +178,9 @@ class GennedPlayer(Player):
         times = []
         
         num_dnf = 0
-        for _ in range(5):
+        num_solves_to_generate = 3 if self.event in MO3_EVENTS else 5
+
+        for _ in range(num_solves_to_generate):
             new_time = random.choice(data_nd)
             if new_time == DNF:
                 num_dnf += 1
@@ -185,9 +190,16 @@ class GennedPlayer(Player):
         fastest = min(times)
         slowest = max(times)
 
-        if num_dnf > 1:
-            avg = DNF
+        if num_solves_to_generate == 3:
+            if num_dnf > 0:
+                avg = DNF 
+            else:
+                avg = total / 3 
         else:
-            avg = (total - fastest - slowest) / (3)
+            if num_dnf > 1:
+                avg = DNF 
+            else:
+                avg = (total - fastest - slowest) / 3
+
         return avg, times
 
