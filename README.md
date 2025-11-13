@@ -11,10 +11,11 @@ Want to spice up your practice routine before your next competition? Use this ap
 - cubescrambler
 - requests
 - numpy
+- pandas
 
 You can install the necessary packages by running this command in your terminal:
 
-`pip install customtkinter cubescrambler requests numpy`
+`pip install customtkinter cubescrambler requests numpy pandas`
 
 ### Run in terminal
 
@@ -37,6 +38,8 @@ Simply ensure you're in the src/ directory and  run the following command in you
 - Player's times are randomly generated via a normal distribution of their last official 98 (non-DNF) WCA times
 - Every generated cuber has the same chance of getting a DNF (as of now is 2%) regardless of their DNF rate in competition
 - Selecting a different event will clear the entered players (i.e., you will have to enter everybody's WCA IDs again)
+- Mo3 hasn't been implemented for certain events
+- FMC results are not proper
 
 ## Keyboard Shortcuts
 
@@ -49,8 +52,8 @@ Simply ensure you're in the src/ directory and  run the following command in you
 | C  | Goes back to the start screen from the round screen to change competitors|
 | R | Restarts the round   |
 | Up/Down Arrow | Changes the chosen event |
+| - | View the stats (from the start screen)|
 
 ## Acknowledgements
 
 This app relies on the WCA Rest API made by Robin Ingelbrecht for simulating player times.
-The 'cherry' theme was made by a13xe [github repo](https://github.com/a13xe/CTkThemesPack?tab=readme-ov-file)
