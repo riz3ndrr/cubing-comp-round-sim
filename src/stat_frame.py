@@ -36,19 +36,37 @@ class StatFrame():
         self.frame = customtkinter.CTkFrame(root, width = 1000, height = 1000, fg_color = "white")
         self.header = customtkinter.CTkLabel(self.frame, text = f"Player stats for {event}",
                                              font = ("TkDefaultFont", 40))
+        self.header.place(relx = 0.2, rely = 0.05)
+       
         self.event = event
         self.num_solves = 3 if self.event in MO3_EVENTS else 5
-        self.event_dropdown = customtkinter.CTkOptionMenu(self.frame, values = EVENT_NAMES,
-                                                          command = self.event_dropdown_callback)
-        self.event_dropdown.set(event)
-        self.event_dropdown.place(relx = 0.8, rely = 0.1)
 
-        self.header.place(relx = 0.2, rely = 0.05)
-        self.switch_frame_button = customtkinter.CTkButton(master = self.frame, text = "Main Menu",
-                                                           command = lambda: switch_frame_func(START),
+        # CHANGE EVENT DROPDOWN
+        self.change_event_label = customtkinter.CTkLabel(master = self.frame, text = "Change Event",
+                                                         font = ("TkDefaultFont", 27))
+        self.change_event_label.place(relx = 0.3, rely = 0.125)
+        self.event_dropdown = customtkinter.CTkOptionMenu(self.frame, values = EVENT_NAMES,
+                                                          command = self.event_dropdown_callback,
+                                                          width = 140, height = 30)
+        self.event_dropdown.set(event)
+        self.event_dropdown.place(relx = 0.5, rely = 0.13)
+        
+        # SWITCH FRAME WIDGET
+        self.switch_frame_func = switch_frame_func
+        self.switch_frame_button = customtkinter.CTkButton(master = self.frame, text = "Main Menu (-)",
+                                                           command = lambda: self.switch_frame_func(START),
                                                            width = 200, height = 50,
                                                            font = ("TkDefaultFont", 20))
         self.switch_frame_button.place(relx = 0.75, rely = 0.95)
+        
+        # CLEAR DATA WIDGET 
+        self.clear_data_button = customtkinter.CTkButton(master = self.frame, text = "Clear Data (D)",
+                                                         command = self.clear_data,
+                                                         width = 200, height = 50,
+                                                         font = ("TkDefaultFont", 20))
+        self.clear_data_button.place(relx = 0.3, rely = 0.8)
+        
+        # STATS
         self.initDataFrame()
         self.showGraph()
         
@@ -63,13 +81,24 @@ class StatFrame():
         self.displayTopResults()
         print(self.data_frame)
 
+    def clear_data(self):
+        filename = f"../data/{self.event}.csv"
+        with open(filename, 'w') as players_csv:
+            num_times = 3 if self.event in MO3_EVENTS else 5 
+            headers = [[f"t{x + 1}" for x in range(num_times)] + ["average", "placing", "num_ppl"]]
+            csvwriter = csv.writer(players_csv)
+            csvwriter.writerows(headers)
+            
+        self.forgetStatWidgets()
+        self.initDataFrame()
+        self.refreshStatWidgets()
+
+
     def initDataFrame(self):
         filename = DIR1 + self.event + DIR2
         try:
             self.data_frame = pd.read_csv(filename)
         except FileNotFoundError:
-            print("AHH")
-
             default_data = [
                 [f"t{x + 1}" for x in range(self.num_solves)] + ["average", "placing", "num_ppl"]
             ]
@@ -83,15 +112,13 @@ class StatFrame():
     def event_dropdown_callback(self, new_event):
         self.event = new_event
         self.num_solves = 3 if self.event in MO3_EVENTS else 5
-
-        self.resetStats()
-        self.showGraph()
-        self.showSummaryStats()
-        self.displayTopResults()
-        self.header.configure(text = f"Player stats for {self.event}")
-           
-    def resetStats(self):
+        self.forgetStatWidgets()
+        
         self.initDataFrame()
+        self.refreshStatWidgets()
+
+
+    def forgetStatWidgets(self):
         stat_widgets = [self.placing_header, self.placing_label,
                        self.mean_time_header, self.mean_time_label,
                        self.mean_avg_header, self.mean_avg_label,
@@ -99,9 +126,17 @@ class StatFrame():
         for w in stat_widgets:
             w.place_forget()
 
-        
+
         for child in self.top_result_container.winfo_children():
             child.destroy()
+
+    def refreshStatWidgets(self):
+        self.showGraph()
+        self.showSummaryStats()
+        self.displayTopResults()
+        self.header.configure(text = f"Player stats for {self.event}")
+
+
                 
 
     def genSuffix(self, number):
@@ -241,8 +276,23 @@ class StatFrame():
         
         
         
-        
+    def changeEventChoice(self, shift):
+        curr_event_index = EVENT_NAMES.index(self.event)
+        num_events = len(EVENT_NAMES)
+        self.event = EVENT_NAMES[(curr_event_index + shift) % num_events]
+        self.event_dropdown.set(self.event)
+
+
     def toggleSinAvg(self):
         pass
     def processUserKeyInput(self, key):
-        pass
+        if key.keysym == "minus":
+            self.switch_frame_func(START)
+        elif key.keysym == "Up":
+            self.changeEventChoice(-1)
+            self.event_dropdown_callback(self.event)
+        elif key.keysym == "Down":
+            self.changeEventChoice(1)
+            self.event_dropdown_callback(self.event)
+        elif key.keysym == "D":
+            self.clear_data()

@@ -192,7 +192,7 @@ class StartFrame():
         self.event = list(EVENT_CODES.keys())[0]
 
         ## VIEW STATS 
-        self.view_stat_button = customtkinter.CTkButton(master = self.frame, text = "View Stats",
+        self.view_stat_button = customtkinter.CTkButton(master = self.frame, text = "View Stats (-)",
                                                         command = lambda: switch_frame_func(STAT))
 
         self.view_stat_button.place(relx = 0.8, rely = 0.21) 
