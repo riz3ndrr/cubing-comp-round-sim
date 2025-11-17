@@ -81,7 +81,7 @@ class PlayerGameRow():
     def changeTime(self, i):
         if i < len(self.player.times):
             self.toggleDisableFunc()
-            popup = ChangeTimePopup(self.game_frame, self.player, self.player.times[i])
+            popup = ChangeTimePopup(self.game_frame, self.player, self.player.times[i], self.toggleDisableFunc)
             print(self.player.times)
             print("CHANGING TIME," + str(i))
 
@@ -120,14 +120,67 @@ class PlayerGameRow():
             self.player_avg_label.configure(text = avg, text_color = "black")
 
 class ChangeTimePopup():
-    def __init__(self, root, player, current_time):
-        self.frame = customtkinter.CTkFrame(master = root, width = 600, height = 200)
-        self.frame.place(relx = 0.25, rely = 0.2)
-        self.entry = customtkinter.CTkEntry(master = self.frame, state = "normal")
-        self.entry.place(relx = 0.25, rely = 0.5)
-        self.entry.insert(0, current_time)
+    def __init__(self, root, player, current_time, toggleDisableFunc):
+        self.frame = customtkinter.CTkFrame(master = root, width = 600, height = 250)
+        self.frame.place(relx = 0.2, rely = 0.2)
 
+        self.header = customtkinter.CTkLabel(master = self.frame, text = "Edit Time", font = ("TkDefaultFont", 25))
+        self.header.place(relx = 0.4, rely = 0.1)
+       
+        self.og_time = current_time
+        self.current_time = current_time
+        self.entry = customtkinter.CTkEntry(master = self.frame, state = "normal", width = 200, height = 30, font = ("TkDefaultFont", 22))
+        self.entry.place(relx = 0.35, rely = 0.3)
+        self.entry.insert(0, self.current_time)
+        
+        BUTTON_HEIGHT = 55 
+        BUTTON_WIDTH = 150
+        BUTTON_Y = 0.6
+        BUTTON_FONT_SIZE = 23
+        self.plus2_button = customtkinter.CTkButton(master = self.frame, text = "+2", width = BUTTON_WIDTH, height = BUTTON_HEIGHT, command = self.addPlus2, font = ("TkDefaultFont", BUTTON_FONT_SIZE))
+        self.plus2_button.place(relx = 0.05, rely = BUTTON_Y)
 
+        self.ok_button = customtkinter.CTkButton(master = self.frame, text = "Save Changes", width = BUTTON_WIDTH + 50, height = BUTTON_HEIGHT, command = self.addPlus2, font = ("TkDefaultFont", BUTTON_FONT_SIZE))
+        self.ok_button.place(relx = 0.35, rely = BUTTON_Y)
+        
+        self.dnf_button = customtkinter.CTkButton(master = self.frame, text = "DNF", width = BUTTON_WIDTH, height = BUTTON_HEIGHT, command = self.changeToDNF, font = ("TkDefaultFont", BUTTON_FONT_SIZE))
+        self.dnf_button.place(relx = 0.7, rely = BUTTON_Y)
+
+        self.x_button = customtkinter.CTkButton(master = self.frame, command = self.destroyPopup, text = "X", width = 30, height = 30)
+        self.x_button.place(relx = 0.9, rely = 0.05)
+        self.toggleDisableFunc = toggleDisableFunc
+    def destroyPopup(self):
+        for child in self.frame.winfo_children():
+            child.destroy()
+        self.toggleDisableFunc()
+        self.frame.place_forget()
+
+    def changeToDNF(self):
+        self.current_time = self.entry.get()
+        if self.current_time[-1] != "+" and self.current_time != "DNF":
+            self.og_time = self.current_time
+
+        self.entry.delete(0, len(str(self.current_time)) + 1)
+        if self.current_time == "DNF":
+            self.entry.insert(0, self.og_time)
+            return 
+        self.entry.insert(0, "DNF")
+
+    def addPlus2(self):
+        self.current_time = self.entry.get()
+        if self.current_time[-1] != "+" and self.current_time != "DNF":
+            self.og_time = self.current_time
+
+        self.entry.delete(0, len(self.current_time) + 1)
+        if self.current_time[-1] == "+":
+            self.entry.insert(0, self.og_time)
+            return
+        if self.current_time == "DNF":
+            text_to_display = f"{(float(self.og_time) + 2):.2f}+"
+            self.entry.insert(0, text_to_display) 
+            return
+        text_to_display = f"{(float(self.current_time) + 2):.2f}+"
+        self.entry.insert(0, text_to_display) 
 
 
 
