@@ -48,7 +48,7 @@ class StatFrame():
 
         # CHANGE EVENT DROPDOWN
         self.change_event_label = customtkinter.CTkLabel(master = self.frame, text = "Change Event",
-                                                         font = ("TkDefaultFont", 27))
+                                                         font = ("TkDefaultFont", 23))
         self.change_event_label.place(relx = 0.3, rely = 0.125)
         self.event_dropdown = customtkinter.CTkOptionMenu(self.frame, values = EVENT_NAMES,
                                                           command = self.event_dropdown_callback,
@@ -81,7 +81,7 @@ class StatFrame():
         self.showSummaryStats() 
 
         ## DRAWING LINE 
-        self.line = customtkinter.CTkFrame(self.frame, width = 900, height = 5, fg_color = "black")
+        self.line = customtkinter.CTkFrame(self.frame, width = 900, height = 3, fg_color = "black")
         self.line.place(relx=0.05, rely= 0.175)
         ## DISPLAY TIMES 
         self.displayTopResults()

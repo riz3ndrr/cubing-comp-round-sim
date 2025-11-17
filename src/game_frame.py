@@ -40,9 +40,10 @@ EVENT_INFO = {
     "5x5x5 Blindfolded": (scrambler555.get_WCA_scramble, 20)
 }
 
+GREY = "#c3c7c4"
 
 class PlayerGameRow():
-    def __init__(self, root, x, y, player, num_solves):
+    def __init__(self, root, x, y, player, num_solves, is_player):
         self.player = player
         self.y = y
         self.frame = root
@@ -60,14 +61,24 @@ class PlayerGameRow():
         self.player_name_label.grid(row = self.y, column = 1, sticky = "ew", padx = 10, pady = 10)
 
         self.player_avg_label = customtkinter.CTkLabel(root, text = "N/A", font = ("TkDefaultFont", 20))
-        self.player_time_labels = [customtkinter.CTkLabel(root, text = "#####", font = ("TkDefaultFont", 20)) for x in range(num_solves)]
+        self.player_time_labels = [customtkinter.CTkButton(root, text = "#####", text_color = "black", width = 50, fg_color = GREY, hover_color = GREY, font = ("TkDefaultFont", 20)) for x in range(num_solves)]
+       # self.player_time_labels = [customtkinter.CTkButton(root, text = "#####", font = ("TkDefaultFont", 20),
+       #                                                    command = self.changeTime, fg_color = "transparent")
+       #                                                    for x in range(num_solves)]
+
 
         for col_num, time_label in enumerate(self.player_time_labels):
+            if is_player:
+                time_label.configure(command = lambda c = col_num : self.changeTime(c))
+            time_label.bind("<Enter>", lambda event, tl = time_label: tl.configure(text_color = "red"))
+            time_label.bind("<Leave>", lambda event, tl = time_label: tl.configure(text_color = "black"))
             time_label.grid(row = self.y, column = col_num + 2, sticky = "", padx = 10)
             # STOP FOR MO3 EVENTS
             
 
         #self.frame.grid_columnconfigure(0, weight = 0)
+    def changeTime(self, i):
+        print("CHANGING TIME," + str(i))
 
     def repositionLabels(self, new_row_num, solve_num, num_solves_in_round):
         self.player_name_label.grid(row = new_row_num, column = 1, sticky = "", padx = 10)
@@ -122,7 +133,7 @@ class GameFrame():
 
 
         ## PLAYER CONTAINER
-        self.players_container = customtkinter.CTkScrollableFrame(master = self.frame, width = 850, height = 700)
+        self.players_container = customtkinter.CTkScrollableFrame(master = self.frame, width = 850, height = 700, fg_color = GREY)
         self.players_container.place(relx = 0.5, rely = 0.65, anchor = customtkinter.CENTER)
 
         ## DISPLAY PLAYER STATS 
@@ -147,14 +158,14 @@ class GameFrame():
         for row_num, player in enumerate(cpu_players):
             pos_label = customtkinter.CTkLabel(master = self.players_container, text = f"{row_num + 1}", font = ("TkDefaultFont", 20))
             pos_label.grid(row = row_num + 1, column = 0)
-            self.players[player] = PlayerGameRow(self.players_container, row_num + 1, row_num + 1, player, self.num_solves)
+            self.players[player] = PlayerGameRow(self.players_container, row_num + 1, row_num + 1, player, self.num_solves, False)
 
         ## GENERATE USER ROW
         pos_label = customtkinter.CTkLabel(master = self.players_container, text = f"{len(cpu_players) + 1}", font = ("TkDefaultFont", 20))
         pos_label.grid(row = len(cpu_players) + 1, column = 0)
 
         self.user = UserPlayer("You", event)
-        self.players[self.user] = PlayerGameRow(self.players_container, len(cpu_players) + 1, len(cpu_players) + 1 , self.user, self.num_solves)
+        self.players[self.user] = PlayerGameRow(self.players_container, len(cpu_players) + 1, len(cpu_players) + 1 , self.user, self.num_solves, True)
 
         ## DISPLAY SCRAMBLE 
         self.scramble_list = []
