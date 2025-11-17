@@ -43,10 +43,11 @@ EVENT_INFO = {
 GREY = "#c3c7c4"
 
 class PlayerGameRow():
-    def __init__(self, root, x, y, player, num_solves, is_player):
+    def __init__(self, root, x, y, player, num_solves, is_player, game_frame, toggleDisableFunc):
         self.player = player
         self.y = y
         self.frame = root
+        self.game_frame = game_frame
 
         NAME_DISPLAY_LENGTH = 16
         display_name = player.name
@@ -56,7 +57,7 @@ class PlayerGameRow():
             display_name += " " * (NAME_DISPLAY_LENGTH - len(display_name))
 
 
-
+        self.toggleDisableFunc = toggleDisableFunc
         self.player_name_label = customtkinter.CTkLabel(root, text = display_name, width = 150, font = ("TkDefaultFont", 20))
         self.player_name_label.grid(row = self.y, column = 1, sticky = "ew", padx = 10, pady = 10)
 
@@ -78,7 +79,11 @@ class PlayerGameRow():
 
         #self.frame.grid_columnconfigure(0, weight = 0)
     def changeTime(self, i):
-        print("CHANGING TIME," + str(i))
+        if i < len(self.player.times):
+            self.toggleDisableFunc()
+            popup = ChangeTimePopup(self.game_frame, self.player, self.player.times[i])
+            print(self.player.times)
+            print("CHANGING TIME," + str(i))
 
     def repositionLabels(self, new_row_num, solve_num, num_solves_in_round):
         self.player_name_label.grid(row = new_row_num, column = 1, sticky = "", padx = 10)
@@ -114,6 +119,15 @@ class PlayerGameRow():
             avg = "DNF" if self.player.avg == DNF else convertToReadableTime(self.player.avg)
             self.player_avg_label.configure(text = avg, text_color = "black")
 
+class ChangeTimePopup():
+    def __init__(self, root, player, current_time):
+        self.frame = customtkinter.CTkFrame(master = root, width = 600, height = 200)
+        self.frame.place(relx = 0.25, rely = 0.2)
+        self.entry = customtkinter.CTkEntry(master = self.frame, state = "normal")
+        self.entry.place(relx = 0.25, rely = 0.5)
+        self.entry.insert(0, current_time)
+
+
 
 
 
@@ -124,6 +138,7 @@ class GameFrame():
         #self.label.place(relx = 0.5, rely = 0.1, anchor = customtkinter.CENTER)
         self.solve_num = 0
         self.event = event
+        self.disabled = False
         if self.event in MO3_EVENTS:
             self.num_solves = 3 
         else:
@@ -165,7 +180,7 @@ class GameFrame():
         pos_label.grid(row = len(cpu_players) + 1, column = 0)
 
         self.user = UserPlayer("You", event)
-        self.players[self.user] = PlayerGameRow(self.players_container, len(cpu_players) + 1, len(cpu_players) + 1 , self.user, self.num_solves, True)
+        self.players[self.user] = PlayerGameRow(self.players_container, len(cpu_players) + 1, len(cpu_players) + 1 , self.user, self.num_solves, True, self.frame, self.toggleDisable)
 
         ## DISPLAY SCRAMBLE 
         self.scramble_list = []
@@ -203,16 +218,31 @@ class GameFrame():
        # self.error_label = customtkinter.CTkLabel(master = self.frame, text = "Please correctly input a time", text_color = "red",
        #                                           font = ("TkDefaultFont", 20))
         #root.bind('<Key>', self.enterUserTime)
-    
+        #TODO DISABLE FUNCTION
+
+    def toggleDisable(self):
+        self.disabled = not self.disabled
+        if self.disabled:
+            self.time_input_label.configure(state = "disabled")
+        else:
+            self.time_input_label.configure(state = "normal")
+
     def switchFrame(self):
+        if self.disabled:
+            return 
+
         if len(self.user.times) == self.num_solves:
             self.user.updateCSV(self.getPlacing() ,len(self.players))
         self.switchFrameFunc(START)
 
     def resetRound(self):
+        if self.disabled:
+            return 
+
         if len(self.user.times) == self.num_solves:
             self.user.updateCSV(self.getPlacing() ,len(self.players))
 
+        self.time_input_label.delete(0, len(self.time_input_label.get()))
         self.time_input_label.configure(state = "normal")
         self.enter_time_button.configure(state = "normal")
         for player, player_row in self.players.items():
@@ -230,11 +260,8 @@ class GameFrame():
             self.processUserTimeInput()
         elif key.keysym == "R":
             self.resetRound()
-            self.time_input_label.delete(0, len(self.time_input_label.get()))
         elif key.keysym == "C":
-            if (len(self.user.times) == self.num_solves):
-                self.user.updateCSV(self.getPlacing() ,len(self.players))
-            self.switchFrameFunc(START)
+            self.switchFrame()
 
     def getPlacing(self):
         for i, player in enumerate(self.players):
@@ -243,6 +270,9 @@ class GameFrame():
         return None
     
     def processUserTimeInput(self):
+        if self.disabled:
+            return
+
         time = self.time_input_label.get()
 
         if time == 'DNF':
