@@ -43,12 +43,12 @@ EVENT_INFO = {
 GREY = "#c3c7c4"
 
 class PlayerGameRow():
-    def __init__(self, root, x, y, player, num_solves, is_player, game_frame, toggleDisableFunc):
+    def __init__(self, root, x, y, player, num_solves, is_player, game_frame=None, toggleDisableFunc=None):
         self.player = player
         self.y = y
         self.frame = root
         self.game_frame = game_frame
-
+        self.num_solves = num_solves
         NAME_DISPLAY_LENGTH = 16
         display_name = player.name
         if len(display_name) > NAME_DISPLAY_LENGTH:
@@ -62,7 +62,7 @@ class PlayerGameRow():
         self.player_name_label.grid(row = self.y, column = 1, sticky = "ew", padx = 10, pady = 10)
 
         self.player_avg_label = customtkinter.CTkLabel(root, text = "N/A", font = ("TkDefaultFont", 20))
-        self.player_time_labels = [customtkinter.CTkButton(root, text = "#####", text_color = "black", width = 50, fg_color = GREY, hover_color = GREY, font = ("TkDefaultFont", 20)) for x in range(num_solves)]
+        self.player_time_labels = [customtkinter.CTkButton(root, text = "#####", text_color = "black", width = 50, fg_color = GREY, hover_color = GREY, font = ("TkDefaultFont", 20)) for x in range(self.num_solves)]
        # self.player_time_labels = [customtkinter.CTkButton(root, text = "#####", font = ("TkDefaultFont", 20),
        #                                                    command = self.changeTime, fg_color = "transparent")
        #                                                    for x in range(num_solves)]
@@ -81,9 +81,24 @@ class PlayerGameRow():
     def changeTime(self, i):
         if i < len(self.player.times):
             self.toggleDisableFunc()
-            popup = ChangeTimePopup(self.game_frame, self.player, self.player.times[i], self.toggleDisableFunc)
+            popup = ChangeTimePopup(self.game_frame, self.player, i, self.toggleDisableFunc,  self.updateLabelsWithNewTime)
             print(self.player.times)
             print("CHANGING TIME," + str(i))
+    
+    def updateLabelsWithNewTime(self, new_time, i): 
+        if i == (self.num_solves -1):
+            self.player.generateAvg()
+            self.player_avg_label.configure(text = convertToReadableTime(self.player.avg))
+        label_to_configure = self.player_time_labels[i]
+        if new_time == DNF:
+            label_to_configure.configure(text = "DNF") 
+        else:
+            label_to_configure.configure(text = convertToReadableTime(new_time))
+        rerank_current_col = True
+        print(self.player.avg)
+        print(f"NEW {self.player.avg}")
+        self.game_frame.rerankPlayers(rerank_current_col)
+
 
     def repositionLabels(self, new_row_num, solve_num, num_solves_in_round):
         self.player_name_label.grid(row = new_row_num, column = 1, sticky = "", padx = 10)
@@ -120,19 +135,22 @@ class PlayerGameRow():
             self.player_avg_label.configure(text = avg, text_color = "black")
 
 class ChangeTimePopup():
-    def __init__(self, root, player, current_time, toggleDisableFunc):
-        self.frame = customtkinter.CTkFrame(master = root, width = 600, height = 250)
+    def __init__(self, root, player, i, toggleDisableFunc, updateLabelsFunc):
+        self.frame = customtkinter.CTkFrame(master = root.frame, width = 600, height = 250)
         self.frame.place(relx = 0.2, rely = 0.2)
-
+        self.player = player
+        self.index = i
         self.header = customtkinter.CTkLabel(master = self.frame, text = "Edit Time", font = ("TkDefaultFont", 25))
         self.header.place(relx = 0.4, rely = 0.1)
        
-        self.og_time = current_time
-        self.current_time = current_time
+        
+        self.og_time = self.player.times[i]
+        self.current_time = self.player.times[i] 
         self.entry = customtkinter.CTkEntry(master = self.frame, state = "normal", width = 200, height = 30, font = ("TkDefaultFont", 22))
         self.entry.place(relx = 0.35, rely = 0.3)
         self.entry.insert(0, self.current_time)
-        
+        self.updateLabelsFunc = updateLabelsFunc
+
         BUTTON_HEIGHT = 55 
         BUTTON_WIDTH = 150
         BUTTON_Y = 0.6
@@ -140,7 +158,7 @@ class ChangeTimePopup():
         self.plus2_button = customtkinter.CTkButton(master = self.frame, text = "+2", width = BUTTON_WIDTH, height = BUTTON_HEIGHT, command = self.addPlus2, font = ("TkDefaultFont", BUTTON_FONT_SIZE))
         self.plus2_button.place(relx = 0.05, rely = BUTTON_Y)
 
-        self.ok_button = customtkinter.CTkButton(master = self.frame, text = "Save Changes", width = BUTTON_WIDTH + 50, height = BUTTON_HEIGHT, command = self.addPlus2, font = ("TkDefaultFont", BUTTON_FONT_SIZE))
+        self.ok_button = customtkinter.CTkButton(master = self.frame, text = "Save Changes", width = BUTTON_WIDTH + 50, height = BUTTON_HEIGHT, command = self.destroyPopup, font = ("TkDefaultFont", BUTTON_FONT_SIZE))
         self.ok_button.place(relx = 0.35, rely = BUTTON_Y)
         
         self.dnf_button = customtkinter.CTkButton(master = self.frame, text = "DNF", width = BUTTON_WIDTH, height = BUTTON_HEIGHT, command = self.changeToDNF, font = ("TkDefaultFont", BUTTON_FONT_SIZE))
@@ -149,11 +167,26 @@ class ChangeTimePopup():
         self.x_button = customtkinter.CTkButton(master = self.frame, command = self.destroyPopup, text = "X", width = 30, height = 30)
         self.x_button.place(relx = 0.9, rely = 0.05)
         self.toggleDisableFunc = toggleDisableFunc
+        self.error_msg = customtkinter.CTkLabel(master = self.frame, text_color = "red", text = "", font = ("TkDefaultFont", 20))
+        self.error_msg.place(relx = 0.5, rely = 0.6)
     def destroyPopup(self):
-        for child in self.frame.winfo_children():
-            child.destroy()
-        self.toggleDisableFunc()
-        self.frame.place_forget()
+        self.current_time = self.entry.get()
+        if self.current_time == "DNF":
+            self.player.times[self.index] = DNF 
+            return 
+        if self.current_time[-1] == "+":
+            self.current_time = self.current_time[:-1]
+
+        try:
+            self.player.times[self.index] = float(self.current_time)
+            for child in self.frame.winfo_children():
+                child.destroy()
+            self.toggleDisableFunc()
+            self.frame.place_forget()
+            self.updateLabelsFunc(float(self.current_time), self.index)
+            self.frame.destroy()
+        except ValueError:
+            self.error_msg.configure(text = "Invalid Time")
 
     def changeToDNF(self):
         self.current_time = self.entry.get()
@@ -233,7 +266,7 @@ class GameFrame():
         pos_label.grid(row = len(cpu_players) + 1, column = 0)
 
         self.user = UserPlayer("You", event)
-        self.players[self.user] = PlayerGameRow(self.players_container, len(cpu_players) + 1, len(cpu_players) + 1 , self.user, self.num_solves, True, self.frame, self.toggleDisable)
+        self.players[self.user] = PlayerGameRow(self.players_container, len(cpu_players) + 1, len(cpu_players) + 1 , self.user, self.num_solves, True, self, self.toggleDisable)
 
         ## DISPLAY SCRAMBLE 
         self.scramble_list = []
@@ -387,11 +420,13 @@ class GameFrame():
             self.enter_time_button.configure(state = "disabled")
 
 
-    def rerankPlayers(self):
+    def rerankPlayers(self, rerankCurrentTimes=False):
         #pprint(self.players.items())
+        shift = 0 if rerankCurrentTimes else 1 
         if self.solve_num < (self.num_solves - 1):
-            self.players = dict(sorted(self.players.items(), key = lambda player_info : min(player_info[0].times[:(self.solve_num + 1)])))
+            self.players = dict(sorted(self.players.items(), key = lambda player_info : min(player_info[0].times[:(self.solve_num + shift)])))
         else:
+            print("AHHHH")
             self.players = dict(sorted(self.players.items(), key = lambda player_info : player_info[0].avg))
 
         #pprint(self.players.items())
