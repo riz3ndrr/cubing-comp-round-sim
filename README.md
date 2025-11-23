@@ -12,10 +12,11 @@ Want to spice up your practice routine before your next competition? Use this ap
 - requests
 - numpy
 - pandas
+- matplotlib
 
 You can install the necessary packages by running this command in your terminal:
 
-`pip install customtkinter cubescrambler requests numpy pandas`
+`pip install customtkinter cubescrambler requests numpy pandas`matplotlib
 
 ### Run in terminal
 
