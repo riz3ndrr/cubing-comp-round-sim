@@ -2,6 +2,11 @@
 
 Want to spice up your practice routine before your next competition? Use this app to "compete" against some of the greatest speedcubers of all time
 
+## How the app looks
+### Adding a new competitor
+![](https://github.com/cubing-comp-round-sim/newgif1.gif)
+### Entering a time
+![](https://github.com/cubing-comp-round-sim/newgif2.gif)
 ## How to run this app on your computer?
 
 ### Prerequisites
