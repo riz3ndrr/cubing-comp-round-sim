@@ -4,9 +4,9 @@ Want to spice up your practice routine before your next competition? Use this ap
 
 ## How the app looks
 ### Adding a new competitor
-![](https://github.com/cubing-comp-round-sim/newgif1.gif)
+![](newgif1.gif)
 ### Entering a time
-![](https://github.com/cubing-comp-round-sim/newgif2.gif)
+![](newgif2.gif)
 ## How to run this app on your computer?
 
 ### Prerequisites
