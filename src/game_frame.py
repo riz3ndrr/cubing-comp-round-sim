@@ -19,6 +19,8 @@ from constants import GAME, START, DNF, MO3_EVENTS
 from helper_functions import convertToReadableTime, convertTimeStringToSec
 from popup import popupFrame
 
+
+
 # Tuple of the form (scramble function, font size)
 EVENT_INFO = {
     "2x2x2 Cube": (scrambler222.get_WCA_scramble, 25),
@@ -49,6 +51,7 @@ class PlayerGameRow():
         self.frame = root
         self.game_frame = game_frame
         self.num_solves = num_solves
+        self.is_player = is_player
         NAME_DISPLAY_LENGTH = 16
         display_name = player.name
         if len(display_name) > NAME_DISPLAY_LENGTH:
@@ -69,7 +72,7 @@ class PlayerGameRow():
 
 
         for col_num, time_label in enumerate(self.player_time_labels):
-            if is_player:
+            if self.is_player:
                 time_label.configure(command = lambda c = col_num : self.changeTime(c))
             time_label.bind("<Enter>", lambda event, tl = time_label: tl.configure(text_color = "red"))
             time_label.bind("<Leave>", lambda event, tl = time_label: tl.configure(text_color = "black"))
@@ -120,13 +123,18 @@ class PlayerGameRow():
             time_label.configure(text = "#####")
     
     def displayNextResult(self, solve_num, num_solves_in_round):
-        label_to_configure = self.player_time_labels[solve_num]
-    
-        time_to_display = self.player.times[solve_num]
-        if time_to_display == DNF:
-            label_to_configure.configure(text = "DNF")
-        else:
-            label_to_configure.configure(text = convertToReadableTime(time_to_display))
+        # Configure all solve labels up to the solve_num,
+        # While this wastes a bunch of resources configuring text that is already displayed,
+        # it makes it easy when toggling between hiding other competitors' times and not
+        for pos, label in enumerate(self.player_time_labels[0:solve_num + 1]):
+            time_to_display = self.player.times[pos]
+            
+            if time_to_display == DNF:
+                label.configure(text = "DNF")
+            else:
+                label.configure(text = convertToReadableTime(time_to_display))
+
+
 
         if solve_num == self.num_solves - 2:
             if num_solves_in_round == 5:
@@ -231,10 +239,7 @@ class GameFrame():
         self.solve_num = 0
         self.event = event
         self.disabled = False
-        if self.event in MO3_EVENTS:
-            self.num_solves = 3 
-        else:
-            self.num_solves = 5
+        self.num_solves = 3 if self.event in MO3_EVENTS else 5
 
         self.scramble_func = EVENT_INFO[self.event][0]
 
@@ -297,7 +302,7 @@ class GameFrame():
         self.rematch_button = customtkinter.CTkButton(master = self.frame, text = "Rematch (R)", command = self.resetRound, width = 200, height = 40)
         self.rematch_button.place(relx = 0.35, rely = user_input_y + 0.05, anchor = customtkinter.CENTER)
 
-            ## SWITCH FRAMES 
+        ## SWITCH FRAMES 
         self.switchFrameFunc = switchFrameFunc
         self.switch_frame_button = customtkinter.CTkButton(master = self.frame, text = "Change Competitors (C)", 
                                                            command = lambda: self.switchFrame(), width = 200, 
@@ -307,10 +312,28 @@ class GameFrame():
         # USER FEEDBACK 
         
         self.error_popup = popupFrame(self.frame, "Please correctly input a time", "red", 500, 200)
-       # self.error_label = customtkinter.CTkLabel(master = self.frame, text = "Please correctly input a time", text_color = "red",
-       #                                           font = ("TkDefaultFont", 20))
-        #root.bind('<Key>', self.enterUserTime)
-        #TODO DISABLE FUNCTION
+    
+        # TOGGLE BETWEEN HIDING OTHER PLAYERS' TIMES 
+        self.show_other_times = False
+        self.display_times_toggle = customtkinter.CTkSwitch(master = self.frame, command = self.toggleShowingOtherTimes, text = "Show Other Results")
+        self.display_times_toggle.place(relx = 0.73, rely = 0.24)
+
+
+
+    def toggleShowingOtherTimes(self):
+        self.show_other_times = not self.show_other_times
+
+        for player_game_row in self.players.values():
+            if player_game_row.is_player is False:
+                if self.show_other_times:
+                    player_game_row.displayNextResult(self.solve_num - 1, self.num_solves)
+                else:
+                    for time_label in player_game_row.player_time_labels:
+                        time_label.configure(text = "#####")
+                    player_game_row.player_avg_label.configure(text = "N/A")
+        
+            
+
 
     def toggleDisable(self):
         self.disabled = not self.disabled
@@ -354,6 +377,12 @@ class GameFrame():
             self.resetRound()
         elif key.keysym == "C":
             self.switchFrame()
+        elif key.keysym == "S":
+            self.toggleShowingOtherTimes()
+            if self.show_other_times:
+                self.display_times_toggle.select()
+            else:
+                self.display_times_toggle.deselect()
 
     def getPlacing(self):
         for i, player in enumerate(self.players):
@@ -415,8 +444,13 @@ class GameFrame():
     def showNextTime(self):
         print(self.solve_num, self.num_solves) 
         self.rerankPlayers()
-        for player_game_row in self.players.values():
-            player_game_row.displayNextResult(self.solve_num, self.num_solves)
+        if self.show_other_times or self.solve_num == self.num_solves - 1:
+            print("AHADHSHJSAHDAJ")
+            for player_game_row in self.players.values():
+                player_game_row.displayNextResult(self.solve_num, self.num_solves)
+        else:
+           self.players[self.user].displayNextResult(self.solve_num, self.num_solves)
+
         self.solve_num += 1
 
         if self.solve_num < self.num_solves:
@@ -424,6 +458,8 @@ class GameFrame():
         else:
             self.time_input_label.configure(state = "disabled")
             self.enter_time_button.configure(state = "disabled")
+            self.display_times_toggle.select() 
+            self.display_times_toggle.configure(state = "disabled")
 
 
     def rerankPlayers(self, rerankCurrentTimes=False):
