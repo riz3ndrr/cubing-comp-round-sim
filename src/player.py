@@ -1,9 +1,9 @@
-from numpy import random
+from numpy import random, clip
 import csv
 import requests
 import pandas as pd
 import os
-from constants import DNF, MO3_EVENTS
+from constants import DNF, MO3_EVENTS, SPRINT_EVENTS
 NUM_RESULTS_TO_COLLECT = 50
 INVALID_TIMES = [-1, -2, 0]
 
@@ -157,7 +157,10 @@ class GennedPlayer(Player):
         result = []
         if times is None:
             return result
-        dist = random.normal(loc = sum(times) / len(times) / 100, scale = 1, size = nd_size)
+        
+        std = 1 if self.event not in SPRINT_EVENTS else 0.6
+        dist = random.normal(loc = sum(times) / len(times) / 100, scale = std, size = nd_size)
+        dist = clip(dist, 0.5, None)
         # Having 2 guaranteed DNFs is completely arbitrary
         dnf_indices = range(2)
         # Allows for scalability if I want more DNFs in the data set

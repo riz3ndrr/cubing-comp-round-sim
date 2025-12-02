@@ -83,12 +83,19 @@ class PlayerGameRow():
             self.toggleDisableFunc()
             popup = ChangeTimePopup(self.game_frame, self.player, i, self.toggleDisableFunc,  self.updateLabelsWithNewTime)
             print(self.player.times)
-            print("CHANGING TIME," + str(i))
+
     
     def updateLabelsWithNewTime(self, new_time, i): 
-        if i == (self.num_solves -1):
+
+        if len(self.player.times) == self.num_solves:
             self.player.generateAvg()
             self.player_avg_label.configure(text = convertToReadableTime(self.player.avg))
+        elif len(self.player.times) == self.num_solves - 1:
+            self.player.calcBPAandWPA()
+            print(self.player.wpa, self.player.bpa)
+            wpa = "DNF" if self.player.wpa == DNF else convertToReadableTime(self.player.wpa)
+            self.player_avg_label.configure(text = f"{convertToReadableTime(self.player.bpa)}/{wpa}", text_color = "grey")
+
         label_to_configure = self.player_time_labels[i]
         if new_time == DNF:
             label_to_configure.configure(text = "DNF") 
@@ -121,16 +128,15 @@ class PlayerGameRow():
         else:
             label_to_configure.configure(text = convertToReadableTime(time_to_display))
 
-        if (solve_num == num_solves_in_round - 2):
+        if solve_num == self.num_solves - 2:
             if num_solves_in_round == 5:
                 #self.player_avg_label.grid(row = self.y, column = 7, sticky = "", padx = 10)
                 wpa = "DNF" if self.player.wpa == DNF else convertToReadableTime(self.player.wpa)
                 self.player_avg_label.configure(text = f"{convertToReadableTime(self.player.bpa)}/{wpa}", text_color = "grey")
             else:
                 # Show provisional mean 
-                print("RAHHH")
                 self.player_avg_label.configure(text = convertToReadableTime(self.player.provisionalMean), text_color = "grey")
-        elif (solve_num == num_solves_in_round - 1):
+        elif solve_num == self.num_solves - 1:
             avg = "DNF" if self.player.avg == DNF else convertToReadableTime(self.player.avg)
             self.player_avg_label.configure(text = avg, text_color = "black")
 
@@ -407,7 +413,7 @@ class GameFrame():
         pprint(self.scramble_list)
         
     def showNextTime(self):
-              
+        print(self.solve_num, self.num_solves) 
         self.rerankPlayers()
         for player_game_row in self.players.values():
             player_game_row.displayNextResult(self.solve_num, self.num_solves)
@@ -423,7 +429,7 @@ class GameFrame():
     def rerankPlayers(self, rerankCurrentTimes=False):
         #pprint(self.players.items())
         shift = 0 if rerankCurrentTimes else 1 
-        if self.solve_num < (self.num_solves - 1):
+        if len(self.user.times) <= self.num_solves - 1:
             self.players = dict(sorted(self.players.items(), key = lambda player_info : min(player_info[0].times[:(self.solve_num + shift)])))
         else:
             print("AHHHH")
