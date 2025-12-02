@@ -348,7 +348,17 @@ class GameFrame():
 
         if len(self.user.times) == self.num_solves:
             self.user.updateCSV(self.getPlacing() ,len(self.players))
+        self.resetPlayerTimes()
         self.switchFrameFunc(START)
+    
+    def resetPlayerTimes(self):
+        for player, player_row in self.players.items():
+            player_row.resetLabels()
+            if (isinstance(player, UserPlayer)):
+                player.times = []
+            else:
+                player.avg, player.times = player.generateNewResults()
+                player.calcBPAandWPA()
 
     def resetRound(self):
         if self.disabled:
@@ -360,13 +370,7 @@ class GameFrame():
         self.time_input_label.delete(0, len(self.time_input_label.get()))
         self.time_input_label.configure(state = "normal")
         self.enter_time_button.configure(state = "normal")
-        for player, player_row in self.players.items():
-            player_row.resetLabels()
-            if (isinstance(player, UserPlayer)):
-                player.times = []
-            else:
-                player.avg, player.times = player.generateNewResults()
-                player.calcBPAandWPA()
+        self.resetPlayerTimes()
         self.generateScramble()
         self.solve_num = 0
 
