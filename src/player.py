@@ -161,6 +161,7 @@ class GennedPlayer(Player):
         std = 1 if self.event not in SPRINT_EVENTS else 0.6
         dist = random.normal(loc = sum(times) / len(times) / 100, scale = std, size = nd_size)
         dist = clip(dist, 0.5, None)
+        print(dist)
         # Having 2 guaranteed DNFs is completely arbitrary
         dnf_indices = range(2)
         # Allows for scalability if I want more DNFs in the data set

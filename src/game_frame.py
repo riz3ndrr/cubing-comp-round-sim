@@ -85,7 +85,7 @@ class PlayerGameRow():
         if i < len(self.player.times):
             self.toggleDisableFunc()
             popup = ChangeTimePopup(self.game_frame, self.player, i, self.toggleDisableFunc,  self.updateLabelsWithNewTime)
-            print(self.player.times)
+            #print(self.player.times)
 
     
     def updateLabelsWithNewTime(self, new_time, i): 
@@ -95,7 +95,7 @@ class PlayerGameRow():
             self.player_avg_label.configure(text = convertToReadableTime(self.player.avg))
         elif len(self.player.times) == self.num_solves - 1:
             self.player.calcBPAandWPA()
-            print(self.player.wpa, self.player.bpa)
+            #print(self.player.wpa, self.player.bpa)
             wpa = "DNF" if self.player.wpa == DNF else convertToReadableTime(self.player.wpa)
             self.player_avg_label.configure(text = f"{convertToReadableTime(self.player.bpa)}/{wpa}", text_color = "grey")
 
@@ -105,8 +105,8 @@ class PlayerGameRow():
         else:
             label_to_configure.configure(text = convertToReadableTime(new_time))
         rerank_current_col = True
-        print(self.player.avg)
-        print(f"NEW {self.player.avg}")
+        #print(self.player.avg)
+        #print(f"NEW {self.player.avg}")
         self.game_frame.rerankPlayers(rerank_current_col)
 
 
@@ -434,7 +434,7 @@ class GameFrame():
             def generateRest():
                 for _ in range(self.num_solves - 1):
                     self.scramble_list.append(self.scramble_func())
-                pprint(self.scramble_list)
+                #pprint(self.scramble_list)
 
             self.scramble_label.after(100, generateRest)
 
@@ -442,10 +442,9 @@ class GameFrame():
         pprint(self.scramble_list)
         
     def showNextTime(self):
-        print(self.solve_num, self.num_solves) 
+        #print(self.solve_num, self.num_solves) 
         self.rerankPlayers()
         if self.show_other_times or self.solve_num == self.num_solves - 1:
-            print("AHADHSHJSAHDAJ")
             for player_game_row in self.players.values():
                 player_game_row.displayNextResult(self.solve_num, self.num_solves)
         else:

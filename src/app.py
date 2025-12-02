@@ -21,6 +21,9 @@ class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
         self.geometry("1000x1000")
+        self.minsize(1000, 1000)
+        self.maxsize(1000,1000)
+        
 
         self.startFrame = StartFrame(self, self.switchFrame, '../players.csv')
         self.gameFrame = None 

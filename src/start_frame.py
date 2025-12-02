@@ -272,7 +272,7 @@ class StartFrame():
         num_events = len(EVENT_CODES)
         self.event = list(EVENT_CODES.keys())[(curr_event_index + shift) % num_events]
         self.event_dropdown.set(self.event)
-        print(self.event)
+        #print(self.event)
 
     def event_dropdown_callback(self, choice):
         if self.event != choice:
@@ -341,6 +341,7 @@ class StartFrame():
 
         try:
             new_player = GennedPlayer(inputted_wca_id, EVENT_CODES[self.event_dropdown.get()])
+            print("Player imported successfully!")
             return new_player
         except PlayerHasNoResultsError:
             self.wca_id_entry_feedback_label.configure(text = "Player has no results in this event", text_color = "red")
