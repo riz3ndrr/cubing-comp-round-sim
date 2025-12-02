@@ -3,10 +3,19 @@
 Want to spice up your practice routine before your next competition? Use this app to "compete" against some of the greatest speedcubers of all time
 
 ## How the app looks
+
 ### Adding a new competitor
+
 ![](newgif1.gif)
+
 ### Entering a time
+
 ![](newgif2.gif)
+
+### Editing a time
+
+![](newgif3.gif)
+
 ## How to run this app on your computer?
 
 ### Prerequisites
