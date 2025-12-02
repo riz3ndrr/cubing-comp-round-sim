@@ -18,7 +18,12 @@ Want to spice up your practice routine before your next competition? Use this ap
 
 ## How to run this app on your computer?
 
-### Prerequisites
+
+### Run the .exe file (WINDOWS ONLY)
+Open the dist/app folder, and simply run the `app.exe` file from there.
+
+### Run in terminal
+#### Prerequisites
 
 - Python3
 - customtkinter
@@ -28,11 +33,11 @@ Want to spice up your practice routine before your next competition? Use this ap
 - pandas
 - matplotlib
 
+#### Running it
+
 You can install the necessary packages by running this command in your terminal:
 
 `pip install customtkinter cubescrambler requests numpy pandas matplotlib`
-
-### Run in terminal
 
 Simply ensure you're in the src/ directory and  run the following command in your terminal
 
